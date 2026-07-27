@@ -144,6 +144,7 @@ EL.Fim = (function () {
   }
 
   function textoCompartilhavel(st) {
+    if (st.diario && EL.Diario) return EL.Diario.cartao(st);
     var v = EL.Sim.vivos(st).length;
     var l = 'PROJECT ELYSIUM — ' + (st.fimDeJogo && st.fimDeJogo.tipo === 'vitoria' ? 'CIVILIZAÇÃO' : 'colônia perdida') + '\n';
     l += 'Sobrevivi ' + st.sol + ' sols (' + (st.sol / 402).toFixed(1) + ' anos de Elysium) · ' + EL.DIFICULDADE[st.dif].n + '\n';
@@ -193,11 +194,48 @@ EL.Fim = (function () {
     if (st.mortos.length > 26) h += '<div><span>e mais ' + (st.mortos.length - 26) + '…</span></div>';
     h += '</div>';
 
+    /* novas entradas destravadas nesta partida */
+    if (st.arqNovas && st.arqNovas.length) {
+      h += '<div class="arq-novas"><b>+' + st.arqNovas.length + ' no Arquivo da Colônia</b>';
+      st.arqNovas.forEach(function (e) { h += '<div>' + esc(e.t) + '</div>'; });
+      h += '</div>';
+    }
+
+    /* desafio diário: selos, sequência e histórico */
+    if (st.diario) {
+      var ids2 = (st.marcos || []).map(function (m) { return m.id; });
+      h += '<div class="selos">' + EL.Diario.selos(ids2) + '</div>';
+      h += '<div class="selos-leg">' + EL.Diario.SELOS.map(function (s2) {
+        return (ids2.indexOf(s2.id) >= 0 ? s2.n : '·');
+      }).filter(function (x) { return x !== '·'; }).join(' · ') + '</div>';
+
+      var hist = EL.Diario.historico().slice(-14);
+      h += '<div class="diario-box"><h4>DESAFIO #' + st.diarioDia + '</h4>';
+      h += '<div class="diario-linha"><span>Sequência de dias</span><span>' + EL.Diario.sequencia() + '</span></div>';
+      var mel = EL.Diario.melhor();
+      if (mel) h += '<div class="diario-linha"><span>Sua melhor marca</span><span>' + mel.sol + ' sols (#' + mel.dia + ')</span></div>';
+      h += '<div class="diario-linha"><span>Desafios jogados</span><span>' + EL.Diario.historico().length + '</span></div>';
+      if (hist.length > 1) {
+        var mx = 1; hist.forEach(function (r) { if (r.sol > mx) mx = r.sol; });
+        h += '<div class="spark">';
+        hist.forEach(function (r) {
+          h += '<i class="' + (r.dia === st.diarioDia ? 'hoje' : '') +
+               '" style="height:' + Math.max(4, Math.round(r.sol / mx * 100)) + '%" title="#' + r.dia + ': ' + r.sol + ' sols"></i>';
+        });
+        h += '</div><div class="selos-leg">últimos ' + hist.length + ' desafios</div>';
+      }
+      h += '<div class="diario-linha" style="margin-top:8px"><span>Próximo planeta</span><span>amanhã</span></div>';
+      h += '</div>';
+    }
+
     h += '<pre class="fim-share" id="fimShare">' + esc(textoCompartilhavel(st)) + '</pre>';
     h += '<div class="fim-acts">' +
-      '<button class="act" data-fim="copiar">Copiar resultado</button> ' +
-      '<button class="act" data-fim="rever">Rever a partida</button> ' +
-      '<button class="act on" data-fim="nova">NOVA COLÔNIA</button></div>';
+      '<button class="act on" data-fim="imagem">Baixar imagem</button> ' +
+      '<button class="act" data-fim="copiarimg">Copiar imagem</button> ' +
+      '<button class="act" data-fim="copiar">Copiar texto</button> ' +
+      '<button class="act" data-fim="arquivo">Arquivo</button> ' +
+      '<button class="act" data-fim="rever">Rever</button> ' +
+      '<button class="act" data-fim="nova">NOVA COLÔNIA</button></div>';
     h += '<p class="fim-dica">' + esc(dica(st)) + '</p>';
     h += '</div>';
     return h;
@@ -226,4 +264,57 @@ EL.Fim = (function () {
   }
 
   return { html: html, textoCompartilhavel: textoCompartilhavel };
+})();
+
+
+/* ================= ARQUIVO DA COLÔNIA (tela) ================= */
+EL.ArquivoUI = (function () {
+
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+  function dicaDe(c) {
+    if (c.sol) return 'Destrava sobrevivendo até o sol ' + c.sol + '.';
+    if (c.marco) return 'Destrava alcançando um marco da colônia.';
+    if (c.tec) return 'Destrava pesquisando uma tecnologia específica.';
+    if (c.evento) return 'Destrava vivendo um acontecimento específico.';
+    if (c.flagAnomalia) return 'Destrava avançando na investigação da Anomalia.';
+    return 'Destrava jogando.';
+  }
+
+  function html() {
+    var a = EL.Arquivo.ler();
+    var n = EL.Arquivo.quantos(), tot = EL.Arquivo.total();
+    var h = '<div class="arq">';
+    h += '<h2>ARQUIVO DA COLÔNIA</h2>';
+    h += '<p class="arq-sub">O que sobra quando a colônia acaba.<br>' +
+         'Cada partida acrescenta entradas aqui, e elas nunca se perdem.</p>';
+
+    h += '<div class="arq-num">';
+    [[n + '/' + tot, 'entradas'], [a.partidas, 'colônias fundadas'],
+     [a.melhorSol, 'melhor marca (sols)'], [a.totalMortos, 'mortos ao todo']].forEach(function (x) {
+      h += '<div class="fim-n"><b>' + x[0] + '</b><span>' + x[1] + '</span></div>';
+    });
+    h += '</div>';
+
+    var cats = {};
+    EL.ARQUIVO.forEach(function (e) { (cats[e.cat] = cats[e.cat] || []).push(e); });
+    Object.keys(cats).forEach(function (cat) {
+      var abertas = cats[cat].filter(function (e) { return a.entradas[e.id]; }).length;
+      h += '<div class="arq-cat">' + esc(cat.toUpperCase()) + ' · ' + abertas + '/' + cats[cat].length + '</div>';
+      cats[cat].forEach(function (e) {
+        var aberta = !!a.entradas[e.id];
+        h += '<div class="arq-e' + (aberta ? '' : ' lock') + '">';
+        h += '<h5>' + (aberta ? esc(e.t) : '█████████████') + '</h5>';
+        if (aberta) h += '<p>' + esc(e.d).replace(/\\n/g, '\n') + '</p>';
+        else h += '<p class="dica">' + esc(dicaDe(e.cond)) + '</p>';
+        h += '</div>';
+      });
+    });
+
+    h += '<button class="arq-fechar" data-arq="fechar">VOLTAR</button>';
+    h += '</div>';
+    return h;
+  }
+
+  return { html: html };
 })();

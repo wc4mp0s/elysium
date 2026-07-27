@@ -340,3 +340,39 @@ EL.EN.logRe.push(
  [/^☠☠ FIM\. Todos morreram no sol (\d+)\.$/, function (m) { return '☠☠ THE END. Everyone died on sol ' + m[1] + '.'; }],
  [/^★★ VITÓRIA: terraformação iniciada com (\d+) habitantes\.$/, function (m) { return '★★ VICTORY: terraforming begun with ' + m[1] + ' inhabitants.'; }]
 );
+
+/* ---------- Early-game events ---------- */
+(function (E) {
+  E.primeira_noite = {n:'The first night', txt:'Night here lasts thirteen hours and forty minutes. Nobody had thought about that. At 19:00 Kore rises whole over the range — three times the size of Earth\'s Moon, craters visible to the naked eye — and Ilex crosses its disc in forty minutes.'};
+  E.os_quatro = {n:'The bodies in section 4', txt:'Nobody decided what to do with Ness, Fashola, Kolar and Tanabe. They are still in the wreck. It has been five sols. Watanabe walks past three times a day and does not go in.',
+    e:[['Bury them today, with a ceremony, everyone present','Costs half a sol of labour. The colony needs this more than it needs half a sol.'],
+       ['Bury them without stopping work','No cost. Half the colony will not be there.'],
+       ['Leave it for later. There are more urgent things','Zero cost now. This comes back.']]};
+  E.primeiro_voo = {n:'KITE\'s first flight', txt:'Salazar cannot sit, so he flew lying down, the controller propped on his chest. Ninety-five minutes of endurance, sixty kilometres of range, and the first time anyone has seen this planet from above since the crash.'};
+  E.zhao_primeira = {n:'Zhao comes back with her hands full', txt:'She went out alone again, against everyone\'s advice, and came back four hours later with a heavy pack and an ugly cut on her forearm.'};
+  E.racao_primeira = {n:'The first argument about food', txt:'Lindqvist cut the portions without telling anyone. Antonova noticed at the first meal and said, in front of everybody, that she had not signed up to go hungry while "people who carry rocks eat the same as people who think".',
+    e:[['Equal rations for everyone, no exceptions','Morale steady. Antonova resents it for a long time.'],
+       ['Heavy labour eats more','Output rises. The colony splits into two classes today.'],
+       ['Let Lindqvist decide alone, no interference','She optimises better than you. And becomes the most hated person in the colony.']]};
+  E.okonkwo_solo = {n:'Okonkwo kneels in the dirt', txt:'He spent the whole shift on his knees, sifting loess between his fingers and smelling handfuls of it. At six in the evening he sat down and stared at the horizon for an uncomfortably long time.'};
+})(EL.EN.eventos);
+
+(function (L) {
+  var m = {
+'Vinte pessoas em silêncio no cascalho, olhando para cima. Deng foi o único que continuou de guarda, e mesmo ele olhou.':'Twenty people silent on the gravel, looking up. Deng was the only one who stayed on watch, and even he looked.',
+'Nakamura escreveu no diário: "É a coisa mais bonita que qualquer um de nós vai ver na vida. Não sei se isso ajuda ou piora."':'Nakamura wrote in the log: "It is the most beautiful thing any of us will ever see. I do not know whether that helps or makes it worse."',
+'Quatro montes de pedra a oitenta metros do casco, virados para o oeste. Vosk leu os nomes e a função de cada um. Foi só isso, e foi suficiente.':'Four stone cairns eighty metres from the hull, facing west. Vosk read out each name and each role. That was all, and it was enough.',
+'Deng e Aduba cavaram durante o turno. Quando terminaram, chamaram quem estava por perto. Sete pessoas.':'Deng and Aduba dug during their shift. When they finished they called whoever was nearby. Seven people.',
+'Ninguém discordou em voz alta. Watanabe parou de passar por ali.':'Nobody objected out loud. Watanabe stopped walking past.',
+'A coluna da Caldeira Tyr a leste. A cratera de impacto ao norte. E no setor I7, sob a vegetação, linhas retas que Salazar mediu três vezes antes de chamar alguém.':'The Tyr Caldera plume to the east. The impact crater to the north. And in sector I7, under the vegetation, straight lines that Salazar measured three times before calling anyone.',
+'Zhao passou o resto do sol tentando explicar aquilo como fratura colunar. Não conseguiu.':'Zhao spent the rest of the sol trying to explain them as columnar jointing. She could not.',
+'Malaquita a 2,3 km. Argila de qualidade a oitocentos metros. Um afloramento de pomes que dá para explorar por anos.':'Malachite 2.3 km out. Good clay at eight hundred metres. A pumice outcrop you could work for years.',
+'"Este planeta é generoso", ela disse, sangrando na bancada enquanto Nakamura suturava. "Só não é gentil."':'"This planet is generous," she said, bleeding on the bench while Nakamura stitched. "It just is not kind."',
+'Vosk foi curta: "Todos comem igual. Quem discordar pode discordar comendo igual." Ninguém levantou a mão.':'Vosk was brief: "Everyone eats the same. Anyone who disagrees may disagree while eating the same." Nobody raised a hand.',
+'Duas filas no refeitório desde hoje. Funciona. E vai ser lembrado por muito tempo.':'Two queues in the mess from today. It works. And it will be remembered for a long time.',
+'Ela agradeceu. Depois foi comer sozinha, do lado de fora, como faz desde então.':'She thanked them. Then went to eat alone, outside, as she has done ever since.',
+'"Não é solo ruim", ele disse depois. "É que não é solo. É pó de rocha esperando alguém inventar a biologia. Nunca teve uma raiz aqui. Nenhuma. Nunca."':'"It is not bad soil," he said afterwards. "It is that it is not soil. It is rock dust waiting for someone to invent biology. There has never been a root here. Not one. Ever."',
+'Ele levou 41 sols para fazer a primeira coisa verde crescer nisso. (+PP)':'It took him 41 sols to make the first green thing grow in it. (+RP)'
+  };
+  for (var k in m) L[k] = m[k];
+})(EL.EN.log);

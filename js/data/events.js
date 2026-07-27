@@ -9,6 +9,71 @@ function _predio(st,b){ var n=0; for(var i=0;i<st.predios.length;i++) if(st.pred
 
 EL.EVENTOS = [
 /* ================= CLIMA E GEOLOGIA ================= */
+/* ================= PRIMEIROS SOLS =================
+   A maioria das colônias morre antes do sol 80. Estes acontecimentos existem para que
+   ninguém termine a primeira partida achando que viu o jogo inteiro. */
+{id:'primeira_noite', n:'A primeira noite', cat:'descoberta', cd:999, peso:function(st){return (st.sol>=2&&st.sol<=4)?900:0;},
+ txt:'A noite aqui dura treze horas e quarenta minutos. Ninguém tinha pensado nisso. Às 19h, Kore sobe inteira sobre a cordilheira — três vezes o tamanho da Lua da Terra, com crateras visíveis a olho nu — e Ilex atravessa o disco dela em quarenta minutos.',
+ efe:function(a){ a.moralAll(+6);
+   a.log('Vinte pessoas em silêncio no cascalho, olhando para cima. Deng foi o único que continuou de guarda, e mesmo ele olhou.','good');
+   a.log('Nakamura escreveu no diário: "É a coisa mais bonita que qualquer um de nós vai ver na vida. Não sei se isso ajuda ou piora."','info'); }},
+
+{id:'os_quatro', n:'Os corpos na seção 4', cat:'social', cd:999, peso:function(st){return (st.sol>=3&&st.sol<=9)?150:0;},
+ txt:'Ninguém decidiu o que fazer com Ness, Fashola, Kolar e Tanabe. Eles ainda estão nos destroços. Faz cinco sols. Watanabe passa por ali três vezes por dia e não entra.',
+ escolhas:[
+  {t:'Enterrar hoje, com cerimônia, todos presentes', d:'Custa meio sol de trabalho. A colônia precisa disso mais do que precisa de meio sol.',
+   ef:function(a){ a.perdaTrabalho(0.5); a.moralAll(+11); a.st.flags.enterrados=true;
+     a.log('Quatro montes de pedra a oitenta metros do casco, virados para o oeste. Vosk leu os nomes e a função de cada um. Foi só isso, e foi suficiente.','good');
+     a.moralOne('watanabe',+18); }},
+  {t:'Enterrar sem parar o trabalho', d:'Sem custo. Metade da colônia não vai estar presente.',
+   ef:function(a){ a.moralAll(+3); a.st.flags.enterrados=true;
+     a.log('Deng e Aduba cavaram durante o turno. Quando terminaram, chamaram quem estava por perto. Sete pessoas.','warn'); }},
+  {t:'Deixar para depois. Há coisas mais urgentes', d:'Zero custo agora. Isto volta.',
+   ef:function(a){ a.moralAll(-6); a.st.flags.naoEnterrados=a.st.sol;
+     a.log('Ninguém discordou em voz alta. Watanabe parou de passar por ali.','bad'); }}
+ ]},
+
+{id:'primeiro_voo', n:'O primeiro voo do KITE', cat:'descoberta', cd:999,
+ peso:function(st){return (st.sol>=4&&st.sol<=14&&st.robos.kite.ativo)?260:0;},
+ txt:'Salazar não consegue sentar, então pilotou deitado, com o controle apoiado no peito. Noventa e cinco minutos de autonomia, sessenta quilômetros de alcance, e a primeira vez que alguém vê este planeta de cima desde que caímos.',
+ efe:function(a){ a.moralAll(+7); a.moralOne('salazar',+16);
+   var alvos=['I7','K8','G3']; alvos.forEach(function(sx){ if(a.st.setores[sx]) a.st.setores[sx].explorado=Math.max(a.st.setores[sx].explorado,22); });
+   a.log('A coluna da Caldeira Tyr a leste. A cratera de impacto ao norte. E no setor I7, sob a vegetação, linhas retas que Salazar mediu três vezes antes de chamar alguém.','info');
+   a.log('Zhao passou o resto do sol tentando explicar aquilo como fratura colunar. Não conseguiu.','info'); }},
+
+{id:'zhao_primeira', n:'Zhao volta com as mãos cheias', cat:'descoberta', cd:999,
+ peso:function(st){return (st.sol>=6&&st.sol<=16)?120:0;},
+ txt:'Ela saiu sozinha de novo, contra a recomendação de todo mundo, e voltou quatro horas depois com a mochila pesada e um corte feio no antebraço.',
+ efe:function(a){ a.mat('min_cobre',a.rng.int(40,90)); a.mat('argila',a.rng.int(60,140)); a.mat('pedra',a.rng.int(80,180));
+   a.st.tech.pp+=a.rng.int(8,18); a.moralAll(+5);
+   a.log('Malaquita a 2,3 km. Argila de qualidade a oitocentos metros. Um afloramento de pomes que dá para explorar por anos.','good');
+   a.log('"Este planeta é generoso", ela disse, sangrando na bancada enquanto Nakamura suturava. "Só não é gentil."','info');
+   if(a.rng.chance(0.35)) a.ferir('zhao','Laceração profunda',18,4); }},
+
+{id:'racao_primeira', n:'A primeira discussão sobre comida', cat:'social', cd:999,
+ peso:function(st){return (st.sol>=8&&st.sol<=20)?110:0;},
+ txt:'Lindqvist reduziu as porções sem avisar ninguém. Antonova percebeu na primeira refeição e disse, na frente de todos, que não tinha assinado para passar fome enquanto "gente que carrega pedra come igual a quem pensa".',
+ escolhas:[
+  {t:'Ração igual para todos, sem exceção', d:'Moral estável. Antonova fica ressentida por muito tempo.',
+   ef:function(a){ a.moralAll(+5); a.st.flags.racaoIgual=true; a.moralOne('antonova',-14);
+     a.rel('antonova','lindqvist',-18);
+     a.log('Vosk foi curta: "Todos comem igual. Quem discordar pode discordar comendo igual." Ninguém levantou a mão.','good'); }},
+  {t:'Quem faz trabalho pesado come mais', d:'Produção sobe. A colônia se divide em duas classes hoje.',
+   ef:function(a){ a.st.bonus.trabalho=(a.st.bonus.trabalho||1)*1.08; a.moralAll(-7);
+     a.st.flags.racaoDesigual=true;
+     a.log('Duas filas no refeitório desde hoje. Funciona. E vai ser lembrado por muito tempo.','warn'); }},
+  {t:'Deixar Lindqvist decidir sozinha, sem interferência', d:'Ela otimiza melhor que você. E vira a pessoa mais odiada da colônia.',
+   ef:function(a){ a.st.bonus.comida=1.06; a.moralOne('lindqvist',-16); a.moralAll(-2);
+     a.log('Ela agradeceu. Depois foi comer sozinha, do lado de fora, como faz desde então.','warn'); }}
+ ]},
+
+{id:'okonkwo_solo', n:'Okonkwo ajoelha no chão', cat:'descoberta', cd:999,
+ peso:function(st){return (st.sol>=5&&st.sol<=15)?100:0;},
+ txt:'Ele passou o turno inteiro de joelhos, peneirando o loess entre os dedos e cheirando punhados dele. Às seis da tarde sentou no chão e ficou olhando para o horizonte por um tempo desconfortavelmente longo.',
+ efe:function(a){ a.st.tech.pp+=a.rng.int(10,22); a.moralAll(-3);
+   a.log('"Não é solo ruim", ele disse depois. "É que não é solo. É pó de rocha esperando alguém inventar a biologia. Nunca teve uma raiz aqui. Nenhuma. Nunca."','info');
+   a.log('Ele levou 41 sols para fazer a primeira coisa verde crescer nisso. (+PP)','info'); }},
+
 {id:'flare', n:'Fulguração de Vesper', cat:'clima', cd:14, peso:function(st){return st.clima.flare?90:0;},
  txt:'Vesper cospe uma fulguração classe X. O céu inteiro fica verde por quarenta minutos e cada instrumento sem blindagem pisca e morre.',
  efe:function(a){ a.st.energia.armazenada*=0.82;

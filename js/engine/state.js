@@ -135,8 +135,12 @@ EL.logar = function (st, txt, tipo) {
 };
 
 EL.salvar = function (st) {
-  try { localStorage.setItem(EL.SAVE_KEY, JSON.stringify(st)); return true; }
-  catch (e) { return false; }
+  try {
+    // a partida diária tem slot próprio, para não sobrescrever a campanha
+    if (st && st.diario && EL.Diario) { EL.Diario.salvar(st); return true; }
+    localStorage.setItem(EL.SAVE_KEY, JSON.stringify(st));
+    return true;
+  } catch (e) { return false; }
 };
 EL.carregar = function () {
   try {

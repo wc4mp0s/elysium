@@ -197,6 +197,57 @@ table.map th{font-size:10px;color:var(--dim2)}
 .modal-box .choices button:hover{border-color:var(--amber);background:#e8a33d11}
 .modal-box .choices button i{display:block;color:var(--dim2);font-style:normal;font-size:10.5px;margin-top:3px}
 
+/* ---------- DESAFIO DIÁRIO (tela inicial) ---------- */
+.modo-diario{display:block;width:100%;text-align:left;padding:14px 16px;margin-bottom:16px;
+  border:1px solid var(--cyan);background:linear-gradient(135deg,#132b2acc,#101a24cc);
+  transition:border-color .15s,transform .1s}
+.modo-diario:hover{border-color:#7fe6dc;transform:translateY(-1px)}
+.md-topo{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}
+.md-tag{font-size:10.5px;letter-spacing:3px;color:var(--cyan);font-weight:700}
+.md-n{font-size:15px;color:var(--txt);font-weight:700}
+.md-d{display:block;font-size:11px;color:var(--dim);line-height:1.5}
+.md-st{display:block;font-size:10.5px;color:var(--amber);margin-top:6px}
+.md-st:empty{display:none}
+.boot-ou{display:flex;align-items:center;gap:10px;margin:0 0 14px;color:var(--dim2);font-size:10px}
+.boot-ou:before,.boot-ou:after{content:"";flex:1;height:1px;background:var(--line)}
+.boot-arquivo{width:100%;margin-top:10px;padding:9px;border:1px solid var(--line2);
+  color:var(--dim);font-size:10.5px;letter-spacing:2px}
+.boot-arquivo:hover{border-color:var(--purple);color:var(--purple)}
+.boot-arquivo b{color:var(--txt)}
+
+/* ---------- CARTÃO DE COMPARTILHAMENTO ---------- */
+.selos{font-size:24px;letter-spacing:5px;text-align:center;margin:14px 0 6px;line-height:1.4}
+.selos-leg{text-align:center;font-size:10px;color:var(--dim2);margin-bottom:16px}
+.diario-box{border:1px solid #4fd1c555;background:#4fd1c50d;padding:12px 14px;margin-bottom:16px}
+.diario-box h4{font-size:11px;letter-spacing:2px;color:var(--cyan);margin-bottom:8px;font-weight:400}
+.diario-linha{display:flex;justify-content:space-between;font-size:11.5px;padding:2px 0}
+.diario-linha span:first-child{color:var(--dim)}
+.spark{display:flex;align-items:flex-end;gap:2px;height:38px;margin-top:10px}
+.spark i{flex:1;background:var(--cyan);opacity:.5;min-height:2px}
+.spark i.hoje{background:var(--amber);opacity:1}
+.fim-img{width:100%;border:1px solid var(--line2);display:block;margin-bottom:12px}
+
+/* ---------- ARQUIVO DA COLÔNIA ---------- */
+.arq{max-width:780px;width:100%}
+.arq h2{text-align:center;font-size:15px;letter-spacing:5px;color:var(--purple);font-weight:400;margin-bottom:6px}
+.arq-sub{text-align:center;color:var(--dim);font-size:11.5px;margin-bottom:18px;line-height:1.6}
+.arq-num{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:20px}
+.arq-cat{font-size:10px;letter-spacing:3px;color:var(--dim2);margin:20px 0 8px;
+  border-bottom:1px solid var(--line);padding-bottom:4px}
+.arq-e{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--purple);
+  padding:11px 14px;margin-bottom:8px}
+.arq-e.lock{border-left-color:var(--line2);opacity:.55}
+.arq-e h5{font-size:12.5px;color:var(--txt);margin-bottom:6px;font-weight:600}
+.arq-e.lock h5{color:var(--dim2)}
+.arq-e p{font-size:11.5px;color:var(--dim);line-height:1.7;white-space:pre-line}
+.arq-e .dica{font-size:10.5px;color:var(--dim2);font-style:italic}
+.arq-fechar{display:block;margin:22px auto 0;padding:11px 26px;border:1px solid var(--line2);
+  color:var(--txt);letter-spacing:2px;font-size:11px}
+.arq-fechar:hover{border-color:var(--amber);color:var(--amber)}
+.arq-novas{border:1px solid #a98bd655;background:#a98bd612;padding:11px 13px;margin-bottom:16px}
+.arq-novas b{color:var(--purple)}
+.arq-novas div{font-size:11.5px;color:var(--txt);padding:2px 0}
+
 /* ---------- TUTORIAL ---------- */
 .tut{background:linear-gradient(180deg,#1a2432,#141c27);border:1px solid var(--line2);
   border-left:3px solid var(--cyan);padding:11px 14px;margin:10px 14px 0}

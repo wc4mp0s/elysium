@@ -671,6 +671,11 @@ EL.UI = (function () {
     if (!st.fimDeJogo) { w.classList.add('hidden'); return; }
     if (st.fimVisto) return;                 // já está aberta; não redesenhar por baixo do usuário
     st.fimVisto = true;
+    try {
+      st.arqNovas = EL.Arquivo.verificar(st);
+      EL.Arquivo.registrarPartida(st);
+      if (st.diario) EL.Diario.registrar(st);
+    } catch (e) {}
     w.className = 'fimwrap' + (st.fimDeJogo.tipo === 'vitoria' ? ' vitoria' : '');
     w.innerHTML = EL.tHTML(EL.Fim.html(st));
     w.scrollTop = 0;
@@ -762,7 +767,15 @@ EL.UI = (function () {
     document.getElementById('fimTela').addEventListener('click', function (e) {
       var b = e.target.closest('button[data-fim]'); if (!b) return;
       var a = b.dataset.fim;
-      if (a === 'copiar') {
+      if (a === 'imagem') {
+        EL.Cartao.baixar(st); toast('Imagem baixada.');
+      } else if (a === 'copiarimg') {
+        EL.Cartao.copiar(st, function (ok) {
+          toast(ok ? 'Imagem copiada — pode colar direto.' : 'Seu navegador não permite copiar imagem. Use "Baixar imagem".');
+        });
+      } else if (a === 'arquivo') {
+        EL.UI.abrirArquivo();
+      } else if (a === 'copiar') {
         var txt = EL.Fim.textoCompartilhavel(st);
         if (navigator.clipboard) navigator.clipboard.writeText(txt).then(function () { toast('Resultado copiado.'); },
           function () { toast('Selecione o texto e copie manualmente.'); });
@@ -772,6 +785,11 @@ EL.UI = (function () {
       } else if (a === 'nova') {
         EL.apagarSave(); location.reload();
       }
+    });
+
+    /* arquivo da colônia */
+    document.getElementById('arqTela').addEventListener('click', function (e) {
+      if (e.target.closest('[data-arq="fechar"]')) document.getElementById('arqTela').classList.add('hidden');
     });
 
     /* diálogos do sistema */
@@ -787,8 +805,15 @@ EL.UI = (function () {
     });
   }
 
+  function abrirArquivo() {
+    var w = document.getElementById('arqTela');
+    w.className = 'fimwrap';
+    w.innerHTML = EL.tHTML(EL.ArquivoUI.html());
+    w.scrollTop = 0;
+  }
+
   return {
-    setState: setState, render: render, bind: bind, toast: toast,
+    setState: setState, render: render, bind: bind, toast: toast, abrirArquivo: abrirArquivo,
     dialogo: dialogo, avisar: avisar, fecharDialogo: fecharDialogo,
     get tab() { return tab; }, set tab(v) { tab = v; }
   };

@@ -36,15 +36,25 @@
                 extremo:['EXTREMO','EXTREME'], brutal:['BRUTAL','BRUTAL'] }[b.dataset.diff];
       if (m) b.textContent = EL.LANG === 'en' ? m[1] : m[0];
     });
+    if (EL.LANG === 'en') {
+      set('.md-tag', 'DAILY CHALLENGE');
+      set('.md-d', 'Everyone plays the same planet today. Tomorrow there is another.');
+      set('.boot-ou span', 'or build your own colony');
+      var ba = document.getElementById('btnArquivo');
+      ba.innerHTML = 'COLONY ARCHIVE <b id="arqCount"></b>';
+    }
   }
 
   function iniciar(estado) {
     st = estado;
     EL.UI.setState(st);
+    window.EL_salvarPartida = function (s2) {
+      if (s2 && s2.diario) EL.Diario.salvar(s2); else EL.salvar(s2);
+    };
     document.getElementById('boot').classList.add('hidden');
     document.getElementById('app').classList.remove('hidden');
     EL.UI.render();
-    EL.salvar(st);
+    window.EL_salvarPartida(st);
   }
 
   var DIF_TXT = {
@@ -62,6 +72,58 @@
   });
   dif = 'facil';
   pintaDif();
+  pintaDiario();
+  aplicarTextoUI();
+  pintaDiario();
+
+  /* ---------- desafio diário ---------- */
+  function pintaDiario() {
+    var dia = EL.Diario.numeroDoDia();
+    document.getElementById('diarioNum').textContent = '#' + dia;
+    var r = EL.Diario.resultadoDoDia(dia);
+    var emAndamento = EL.Diario.carregar();
+    var el = document.getElementById('diarioEstado');
+    var seq = EL.Diario.sequencia();
+    var en = EL.LANG === 'en';
+    if (r) {
+      el.textContent = (en ? 'You already played today: ' : 'Você já jogou hoje: ') + r.sol + ' sols' +
+        (seq > 1 ? (en ? ' · ' + seq + '-day streak' : ' · sequência de ' + seq + ' dias') : '') +
+        (en ? ' — click to review' : ' — clique para rever');
+    } else if (emAndamento) {
+      el.textContent = en
+        ? 'Today\'s run in progress — sol ' + emAndamento.sol + ' · click to continue'
+        : 'Partida de hoje em andamento — sol ' + emAndamento.sol + ' · clique para continuar';
+    } else {
+      el.textContent = seq > 0
+        ? (en ? 'Streak of ' + seq + ' days — do not miss today' : 'Sequência de ' + seq + ' dias — não perca hoje')
+        : (en ? 'Not played yet today' : 'Ainda não jogado hoje');
+    }
+    var a = EL.Arquivo.ler();
+    document.getElementById('arqCount').textContent =
+      EL.Arquivo.quantos() + '/' + EL.Arquivo.total();
+  }
+
+  function iniciarDiario() {
+    var dia = EL.Diario.numeroDoDia();
+    var jaFeito = EL.Diario.resultadoDoDia(dia);
+    var emAndamento = EL.Diario.carregar();
+    if (emAndamento) { iniciar(emAndamento); return; }
+    if (jaFeito) {
+      EL.UI.dialogo({
+        titulo: 'DESAFIO #' + dia + ' JÁ JOGADO',
+        icone: '📅',
+        texto: 'Você sobreviveu <b>' + jaFeito.sol + ' sols</b> no planeta de hoje.<br>' +
+               'O resultado registrado é sempre o da primeira tentativa — jogar de novo não muda o placar.',
+        nota: 'Um planeta novo aparece todo dia. Você também pode montar uma colônia própria abaixo.',
+        cancelar: 'Voltar', ok: 'Jogar assim mesmo'
+      }, function (ok) { if (ok) { EL.Diario.limpar(); iniciar(EL.Diario.novaPartida()); } });
+      return;
+    }
+    iniciar(EL.Diario.novaPartida());
+  }
+
+  document.getElementById('btnDiario').addEventListener('click', iniciarDiario);
+  document.getElementById('btnArquivo').addEventListener('click', function () { EL.UI.abrirArquivo(); });
 
   function comecar() {
     var seed = document.getElementById('seedInput').value.trim() || 'ELYSIUM-1';

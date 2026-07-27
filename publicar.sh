@@ -44,18 +44,30 @@ if ! git push -q 2>&1 | sed -E 's/gh[ps]_[A-Za-z0-9]+/[TOKEN OCULTO]/g'; then
   exit 1
 fi
 
-# ---------- 4. esperar o Pages republicar e conferir ----------
-echo "→ Aguardando o GitHub Pages republicar..."
+# ---------- 4. esperar o Pages republicar A VERSÃO NOVA ----------
+# Conferir só o HTTP 200 não basta: o site antigo também responde 200 enquanto
+# o Pages reconstrói. Usamos o hash do commit como marcador do que está no ar.
+SHA=$(git rev-parse HEAD)
+echo "$SHA" > .versao
+git add .versao && git commit -q --amend --no-edit && git push -q --force-with-lease 2>&1 | \
+  sed -E 's/gh[ps]_[A-Za-z0-9]+/[TOKEN OCULTO]/g'
+SHA=$(git rev-parse HEAD)
+echo "$SHA" > .versao
+git add .versao && git commit -q --amend --no-edit 2>/dev/null
+git push -q --force-with-lease 2>&1 | sed -E 's/gh[ps]_[A-Za-z0-9]+/[TOKEN OCULTO]/g'
+
+echo "→ Aguardando o GitHub Pages publicar esta versão..."
 ok=0
-for i in 1 2 3 4 5 6 7 8; do
-  code=$(curl -s -o /dev/null -w "%{http_code}" "$SITE/?v=$RANDOM")
-  if [ "$code" = "200" ]; then ok=1; break; fi
-  printf '   tentativa %s (HTTP %s)\n' "$i" "$code"
-  perl -e 'select(undef,undef,undef,15)'
+alvo=$(git rev-parse HEAD)
+for i in 1 2 3 4 5 6 7 8 9 10; do
+  viva=$(curl -s "$SITE/.versao?v=$RANDOM" | tr -d '[:space:]')
+  if [ "$viva" = "$alvo" ]; then ok=1; break; fi
+  printf '   tentativa %s (no ar: %s)\n' "$i" "${viva:0:7}"
+  perl -e 'select(undef,undef,undef,20)'
 done
 
 if [ "$ok" -ne 1 ]; then
-  echo "AVISO: o site não respondeu 200 a tempo. O push foi feito; o Pages pode demorar mais um pouco."
+  echo "AVISO: a versão nova ainda não apareceu no ar. O push foi feito; o Pages pode demorar mais um pouco."
   exit 1
 fi
 

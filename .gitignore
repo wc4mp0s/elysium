@@ -4,3 +4,6 @@ Thumbs.db
 elysium-sol*.json
 .vscode/
 .idea/
+
+# configuração local de desenvolvimento
+.claude/

@@ -98,9 +98,14 @@
         ? (en ? 'Streak of ' + seq + ' days — do not miss today' : 'Sequência de ' + seq + ' dias — não perca hoje')
         : (en ? 'Not played yet today' : 'Ainda não jogado hoje');
     }
-    var a = EL.Arquivo.ler();
-    document.getElementById('arqCount').textContent =
-      EL.Arquivo.quantos() + '/' + EL.Arquivo.total();
+    var el2 = document.getElementById('arqCount');
+    if (el2) el2.textContent = EL.Arquivo.quantos() + '/' + EL.Arquivo.total();
+    var el3 = document.getElementById('cenCount');
+    if (el3) {
+      var cq = EL.Conquistas.ler(), venc = ['c_cen_inverno','c_cen_sozinho','c_cen_tanque','c_cen_tabula',
+        'c_cen_anom','c_cen_enxame','c_cen_geracao'].filter(function (k) { return cq[k]; }).length;
+      el3.textContent = venc + '/7';
+    }
   }
 
   function iniciarDiario() {
@@ -124,6 +129,22 @@
 
   document.getElementById('btnDiario').addEventListener('click', iniciarDiario);
   document.getElementById('btnArquivo').addEventListener('click', function () { EL.UI.abrirArquivo(); });
+  document.getElementById('btnCenarios').addEventListener('click', function () { EL.UI.abrirCenarios(); });
+
+  window.EL_iniciarCenario = function (id) {
+    var c = EL.cenarioPorId(id); if (!c) return;
+    function vai() {
+      document.getElementById('cenTela').classList.add('hidden');
+      iniciar(EL.novoCenario(id, 'ELYSIUM-' + id));
+    }
+    if (!EL.temSave()) { vai(); return; }
+    EL.UI.dialogo({
+      titulo: 'INICIAR CENÁRIO', perigo: true, icone: '⚠',
+      texto: 'Começar <b>' + c.n + '</b> apaga a colônia salva neste navegador.',
+      nota: 'O Desafio Diário e o Arquivo não são afetados.',
+      cancelar: 'Voltar', ok: 'COMEÇAR'
+    }, function (ok) { if (ok) vai(); });
+  };
 
   function comecar() {
     var seed = document.getElementById('seedInput').value.trim() || 'ELYSIUM-1';

@@ -311,10 +311,60 @@ EL.ArquivoUI = (function () {
       });
     });
 
+    /* conquistas */
+    var cq = EL.Conquistas.ler();
+    h += '<div class="arq-cat">CONQUISTAS · ' + EL.Conquistas.quantas() + '/' + EL.Conquistas.total() + '</div>';
+    h += '<div class="conq-grid">';
+    EL.CONQUISTAS.forEach(function (c) {
+      var feita = !!cq[c.id];
+      h += '<div class="conq' + (feita ? '' : ' lock') + '">';
+      h += '<b>' + (feita ? '🏆 ' : '') + esc(c.n) + '</b><span>' + esc(c.d) + '</span>';
+      if (feita && cq[c.id].sol) h += '<i>sol ' + cq[c.id].sol + '</i>';
+      h += '</div>';
+    });
+    h += '</div>';
+
     h += '<button class="arq-fechar" data-arq="fechar">VOLTAR</button>';
     h += '</div>';
     return h;
   }
 
+  return { html: html };
+})();
+
+
+/* ================= CENÁRIOS (tela) ================= */
+EL.CenariosUI = (function () {
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+  function html() {
+    var conq = EL.Conquistas.ler();
+    var venceu = {
+      inverno: !!conq.c_cen_inverno, sozinho: !!conq.c_cen_sozinho, tanque: !!conq.c_cen_tanque,
+      tabula: !!conq.c_cen_tabula, anomalia: !!conq.c_cen_anom, enxame: !!conq.c_cen_enxame,
+      geracao: !!conq.c_cen_geracao
+    };
+    var n = Object.keys(venceu).filter(function (k) { return venceu[k]; }).length;
+
+    var h = '<div class="cen">';
+    h += '<h2>CENÁRIOS</h2>';
+    h += '<p class="cen-sub">Cada um é uma partida inteira com uma restrição própria<br>' +
+         'e uma condição de vitória diferente. <b>' + n + '/7</b> vencidos.</p>';
+
+    EL.CENARIOS.slice().sort(function (a, b) { return a.ordem - b.ordem; }).forEach(function (c) {
+      var v = venceu[c.id];
+      h += '<div class="cen-c' + (v ? ' venceu' : '') + (c.sandbox ? ' sandbox' : '') + '" data-cen="' + c.id + '">';
+      h += '<div class="cen-h"><b>' + esc(c.n) + '</b><span>' +
+           (v ? '<span class="cen-ok">✔ VENCIDO</span>' : EL.DIFICULDADE[c.dif].n) + '</span></div>';
+      h += '<p>' + esc(c.d) + '</p>';
+      h += '<div class="cen-obj">◆ ' + esc(c.objetivo) + '</div>';
+      h += '<div class="cen-dica">' + esc(c.dica) + '</div>';
+      h += '</div>';
+    });
+
+    h += '<button class="arq-fechar" data-cen-fechar="1">VOLTAR</button>';
+    h += '</div>';
+    return h;
+  }
   return { html: html };
 })();

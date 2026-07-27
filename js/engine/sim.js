@@ -242,6 +242,13 @@ EL.Sim = (function () {
       },
       matar: function (id, causa) {
         var c = st.crew.filter(function (x) { return x.id === id; })[0]; if (!c || !c.vivo) return;
+        // Colônia Livre: ninguém morre, nem por evento. Fica gravemente ferido e se recupera.
+        if (st.sandbox) {
+          c.saude = Math.max(12, c.saude * 0.5);
+          c.ferimento = { n: EL.trFerimento('Trauma grave'), sev: 55, dias: 12 };
+          EL.logar(st, c.nome + ' escapou por pouco. (Modo Colônia Livre: ninguém morre)', 'warn');
+          return;
+        }
         causa = EL.trCausa(causa);
         c.vivo = false; st.mortos.push({ nome: c.nome, func: c.func, causa: causa, sol: st.sol });
         st.stats.mortosTotal++;
@@ -574,7 +581,7 @@ EL.Sim = (function () {
         var rend = cp.rend * (lo.saude / 100) * (lo.mult || 1) * efTech(st, 'colheitaMult', 'max' ) ;
         if (!rend || rend < 0) rend = cp.rend * (lo.saude / 100) * (lo.mult || 1);
         rend *= D.producao;
-        if (cp.rend > 0) st.mat.comida += rend;
+        if (cp.rend > 0) { st.mat.comida += rend; st.colhidoTotal = (st.colhidoTotal || 0) + rend; }
         if (cp.fibra) st.mat.fibra += cp.fibra * (lo.saude / 100);
         if (cp.oleo) st.mat.biodiesel += cp.oleo * (lo.saude / 100);
         st.mat.semente += cp.sem * 1.9;
@@ -656,7 +663,7 @@ EL.Sim = (function () {
       if (!fMult || fMult <= 0) fMult = 1;
       if (p1.trabalhoEfetivo === 'descanso') p1.fadiga = clamp(p1.fadiga - 32 + (R2.abrigoDeficit > 0 ? 6 : 0), 0, 100);
       else {
-        var f2 = 11 * fMult;
+        var f2 = 11 * fMult * (st.bonus.fadiga || 1);
         if (p1.tracos.indexOf('tept') >= 0) f2 *= 1.4;
         if (p1.tracos.indexOf('obsessivo') >= 0) f2 *= 1.25;
         if (p1.idade > 50) f2 *= 1.15;
@@ -692,8 +699,11 @@ EL.Sim = (function () {
       alvo += apoioPsi / Math.max(1, vs.length) * 2.4;
       p1.moral = clamp(p1.moral + (alvo - p1.moral) * 0.18, 0, 100);
       p1.humor = clamp(p1.moral * 0.6 + (100 - p1.fadiga) * 0.25 + (100 - p1.fome) * 0.15, 0, 100);
-      // morte
-      if (p1.saude <= 0) {
+      // morte — no modo Colônia Livre ninguém morre, só fica incapacitado
+      if (p1.saude <= 0 && st.sandbox) {
+        p1.saude = 8; p1.fadiga = Math.min(p1.fadiga, 70);
+        if (p1.ferimento) p1.ferimento.sev = Math.min(p1.ferimento.sev, 30);
+      } else if (p1.saude <= 0) {
         var causa = EL.trCausa(st.faltouAgua ? 'Desidratação' : (p1.ferimento ? p1.ferimento.n : (p1.fome > 90 ? 'Inanição' : 'Colapso orgânico')));
         criarApi(st, rng, R2).matar(p1.id, causa);
         criarApi(st, rng, R2).moralAll(-14);
@@ -721,7 +731,7 @@ EL.Sim = (function () {
 
     /* ---------- 16. MANUTENÇÃO E DESGASTE ---------- */
     var nPred = st.predios.filter(function (p) { return p.pronto; }).length || 1;
-    var desgaste = 0.45 * D.risco - (acc.manutencao * 9) / nPred;
+    var desgaste = 0.45 * D.risco * (st.bonus.risco || 1) - (acc.manutencao * 9) / nPred;
     for (var d1 = st.predios.length - 1; d1 >= 0; d1--) {
       var pd = st.predios[d1]; if (!pd.pronto) continue;
       pd.hp -= Math.max(-2, desgaste) * (st.clima.cond === 'tempestade' ? 2 : 1);
@@ -753,7 +763,7 @@ EL.Sim = (function () {
       var ev = EL.EVENTOS[e1];
       if (st.eventosCd[ev.id] && st.eventosCd[ev.id] > st.sol) continue;
       var w = (typeof ev.peso === 'function') ? ev.peso(st) : ev.peso;
-      if (w > 0) cands.push({ ev: ev, w: w * D.evento });
+      if (w > 0) cands.push({ ev: ev, w: w * D.evento * ((ev.cat === 'crise' || ev.cat === 'fauna') ? (st.bonus.risco || 1) : 1) });
     }
     var nEv = rng.chance(0.55) ? 1 : (rng.chance(0.25) ? 2 : 0);
     for (var e2 = 0; e2 < nEv && cands.length; e2++) {
@@ -765,6 +775,10 @@ EL.Sim = (function () {
       if (esc.ev.escolhas) { st.pendente = { id: esc.ev.id }; break; }
       else if (esc.ev.efe) esc.ev.efe(criarApi(st, rng, R3));
     }
+
+    /* ---------- 17b. CONTADORES DE CENÁRIO ---------- */
+    var aguaSobra = R3.aguaPassiva - R3.aguaLiquida - R3.aguaUso;
+    st.aguaEstavel = aguaSobra > 0 ? (st.aguaEstavel || 0) + 1 : 0;
 
     /* ---------- 18. HISTÓRICO E MARCOS ---------- */
     if (!st.hist) st.hist = [];
@@ -812,6 +826,26 @@ EL.Sim = (function () {
 
   function checarFim(st) {
     var v = vivos(st);
+    /* conquistas são verificadas sempre, mesmo sem fim de jogo */
+    try { if (EL.Conquistas) { var nc = EL.Conquistas.verificar(st);
+      if (nc.length) { st.conqNovas = (st.conqNovas || []).concat(nc);
+        nc.forEach(function (c) { EL.logar(st, '🏆 ' + c.n + ' — ' + c.d, 'good'); }); } } } catch (e) {}
+
+    /* condição de vitória própria do cenário */
+    if (!st.fimDeJogo && st.cenario && EL.cenarioPorId) {
+      var cen = EL.cenarioPorId(st.cenario);
+      if (cen && cen.vitoria) {
+        var venceu = false;
+        try { venceu = cen.vitoria(st); } catch (e) {}
+        if (venceu) {
+          st.fimDeJogo = { tipo: 'vitoria',
+            txt: (EL.LANG === 'en' ? 'Scenario complete: ' : 'Cenário vencido: ') + cen.n + ' — ' + cen.objetivo };
+          EL.logar(st, '★★ ' + cen.n + ': objetivo cumprido no sol ' + st.sol + '.', 'good');
+          try { if (EL.Conquistas) EL.Conquistas.verificar(st); } catch (e) {}
+          return;
+        }
+      }
+    }
     if (v.length === 0) {
       var ult = st.mortos.slice(-6).map(function (m) { return m.causa; });
       var cont = {}, causa = 'Colapso', maior = 0;

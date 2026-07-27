@@ -12,6 +12,135 @@ EL.EVENTOS = [
 /* ================= PRIMEIROS SOLS =================
    A maioria das colônias morre antes do sol 80. Estes acontecimentos existem para que
    ninguém termine a primeira partida achando que viu o jogo inteiro. */
+/* ================= MEIO E FIM DE JOGO =================
+   A partir do sol 150 a sobrevivência deixa de ser a pergunta. Estas decisões
+   existem para que a colônia continue tendo escolhas depois de resolver água e comida. */
+{id:'lg_constituicao', n:'Alguém precisa escrever as regras', cat:'social', cd:999,
+ peso:function(st){return (st.sol>150&&st.pop>=14&&!st.flags.constituicao)?70:0;},
+ txt:'Costa levantou no jantar com quatro folhas escritas à mão. "Somos vinte e dois. Já tivemos uma briga por ração, um motim e uma disputa de comando. Nada disso está escrito em lugar nenhum. Quando eu morrer, ninguém vai lembrar por que decidimos as coisas assim."',
+ escolhas:[
+  {t:'Uma carta: regras escritas, revisáveis por assembleia', d:'Moral estável para sempre. Decisões ficam mais lentas.',
+   ef:function(a){ a.st.flags.constituicao='carta'; a.st.bonus.moralComando=(a.st.bonus.moralComando||1)+2.2;
+     a.st.bonus.pesquisa=(a.st.bonus.pesquisa||1)*0.97; a.moralAll(+12);
+     a.log('Quatro folhas viraram catorze. Todo mundo assinou, inclusive quem não sabia escrever direito depois de tanto tempo sem papel.','good'); }},
+  {t:'Comando único, sucessão definida em vida', d:'Eficiência alta. A colônia depende de uma pessoa.',
+   ef:function(a){ a.st.flags.constituicao='comando'; a.st.bonus.trabalho=(a.st.bonus.trabalho||1)*1.10;
+     a.st.bonus.moralComando=(a.st.bonus.moralComando||1)+0.5; a.moralAll(+3);
+     a.log('Vosk nomeou sucessor por escrito e lacrou o envelope. Funciona. Também significa que um acidente muda tudo.','warn'); }},
+  {t:'Nada escrito. O costume basta', d:'Sem custo agora. A colônia repete os mesmos conflitos.',
+   ef:function(a){ a.st.flags.constituicao='costume'; a.st.bonus.conflito=1.25;
+     a.log('Costa guardou as folhas na mochila. Não falou mais no assunto.','warn'); }}
+ ]},
+
+{id:'lg_segunda_colonia', n:'Fundar o segundo assentamento', cat:'social', cd:999,
+ peso:function(st){return (st.sol>200&&st.pop>=18&&st.setoresExplorados>=8&&!st.flags.segundaColonia)?75:0;},
+ txt:'Petrov abriu o mapa na mesa. "Estamos todos num raio de dois quilômetros. Uma erupção de Tyr, uma cheia grande, uma doença — e acaba tudo de uma vez. Precisamos de gente longe daqui."',
+ escolhas:[
+  {t:'Enviar seis pessoas para fundar o segundo assentamento', d:'Perde seis trabalhadores por um bom tempo. Elimina o risco de perder tudo de uma vez.',
+   ef:function(a){ a.st.flags.segundaColonia=a.st.sol; a.st.bonus.risco=0.72;
+     a.perdaTrabalho(0.3); a.moralAll(+4);
+     a.log('Seis voluntários, um ATLAS emprestado e setenta quilômetros de caminhada. A colônia deixou de ser um ponto no mapa e virou dois.','good'); }},
+  {t:'Espalhar a infraestrutura aqui mesmo, sem dividir gente', d:'Reduz parte do risco sem perder mão de obra.',
+   ef:function(a){ a.st.flags.segundaColonia='disperso'; a.st.bonus.risco=0.88;
+     a.log('Armazéns duplicados nas duas pontas do vale, laboratório longe do reator. Melhor que nada, e menos que o necessário.','warn'); }},
+  {t:'Concentrar tudo. Estamos poucos demais para dividir', d:'Máxima eficiência. Um desastre grande pode acabar com a colônia inteira.',
+   ef:function(a){ a.st.flags.segundaColonia='nao'; a.st.bonus.trabalho=(a.st.bonus.trabalho||1)*1.08;
+     a.st.bonus.risco=1.15;
+     a.log('Petrov enrolou o mapa sem dizer nada. Ele guardou o desenho.','warn'); }}
+ ]},
+
+{id:'lg_geracao', n:'Os que nasceram aqui', cat:'social', cd:999,
+ peso:function(st){return (st.stats.nascidos>=3&&!st.flags.escolaGeracao)?80:0;},
+ txt:'As crianças de Elysium não sabem o que é um oceano azul, uma noite de doze horas ou um céu sem duas luas. Moreau perguntou, no conselho, o que exatamente vamos ensinar a elas sobre a Terra.',
+ escolhas:[
+  {t:'Ensinar tudo: história, geografia, a Terra inteira', d:'Cultura preservada. As crianças sentem falta de um lugar que nunca viram.',
+   ef:function(a){ a.st.flags.escolaGeracao='terra'; a.st.bonus.ensino=(a.st.bonus.ensino||1)+0.5;
+     a.st.bonus.moralJovem=0.92;
+     a.log('Aduba ficou responsável pelas aulas. Ele mesmo mal lembra da Terra, e é justamente por isso que consegue ensinar sem chorar.','warn'); }},
+  {t:'Ensinar Elysium primeiro. A Terra é história antiga', d:'Geração adaptada e sem nostalgia. Perde-se alguma coisa que não volta.',
+   ef:function(a){ a.st.flags.escolaGeracao='elysium'; a.st.bonus.moralJovem=1.15;
+     a.st.bonus.ensino=(a.st.bonus.ensino||1)+0.2; a.moralAll(+5);
+     a.log('O currículo começa pela xenobiologia local e pelo ciclo das duas luas. A Terra aparece no terceiro ano, como origem — não como casa.','good'); }},
+  {t:'Que decidam sozinhas quando crescerem', d:'Nada agora. Elas vão perguntar de novo, mais velhas.',
+   ef:function(a){ a.st.flags.escolaGeracao='adiado';
+     a.log('Ninguém ficou satisfeito com a resposta, incluindo quem a deu.','info'); }}
+ ]},
+
+{id:'lg_automacao', n:'O que fazer com o tempo livre', cat:'social', cd:999,
+ peso:function(st){return (_tem(st,'automacao')&&!st.flags.tempoLivre)?85:0;},
+ txt:'A linha automatizada faz o trabalho de seis pessoas. Pela primeira vez desde o pouso, existem horas no sol que ninguém precisa preencher. Ninguém sabe direito o que fazer com isso.',
+ escolhas:[
+  {t:'Turnos mais curtos para todos', d:'Fadiga cai muito. Produção cresce menos rápido.',
+   ef:function(a){ a.st.flags.tempoLivre='descanso'; a.st.bonus.fadiga=0.72; a.moralAll(+14);
+     a.log('Seis horas de turno. A primeira colônia da história desta espécie a trabalhar menos que a anterior.','good'); }},
+  {t:'Redirecionar tudo para pesquisa', d:'Ciência dispara. As pessoas continuam exaustas.',
+   ef:function(a){ a.st.flags.tempoLivre='pesquisa'; a.st.bonus.pesquisa=(a.st.bonus.pesquisa||1)*1.45;
+     a.log('O instituto passou a funcionar em três turnos. Antonova está feliz. Moreau está preocupada.','warn'); }},
+  {t:'Arte, registro, memória: alguém precisa contar isto', d:'Moral muito alta e permanente. Nenhum ganho material.',
+   ef:function(a){ a.st.flags.tempoLivre='cultura'; a.st.bonus.moralComando=(a.st.bonus.moralComando||1)+2.8;
+     a.moralAll(+18);
+     a.log('Murais no refeitório, um arquivo de áudio com a voz de cada um, e a primeira música composta em Elysium. Não alimenta ninguém. Mudou tudo mesmo assim.','good'); }}
+ ]},
+
+{id:'lg_terra', n:'A antena aponta para casa', cat:'social', cd:999,
+ peso:function(st){return (_tem(st,'radio')&&st.sol>250&&!st.flags.mensagemTerra)?60:0;},
+ txt:'Com o transmissor reconstruído, é tecnicamente possível mandar uma mensagem para a Terra. Ela levaria 22,7 anos para chegar. Ninguém aqui estaria vivo para ouvir a resposta.',
+ escolhas:[
+  {t:'Enviar o registro completo: tudo o que aprendemos', d:'Custa energia e tempo. Não muda nada aqui — só lá.',
+   ef:function(a){ a.st.flags.mensagemTerra='completo'; a.st.energia.armazenada*=0.6; a.moralAll(+16);
+     a.log('Quatrocentas horas de gravação: a biologia daqui, o mapa, os nomes dos mortos, as receitas que funcionaram. Vai chegar em 2049 do calendário de lá. Alguém vai ouvir.','good'); }},
+  {t:'Enviar só os nomes', d:'Barato. E, para muita gente aqui, suficiente.',
+   ef:function(a){ a.st.flags.mensagemTerra='nomes'; a.moralAll(+9);
+     a.log('Vinte e quatro nomes, quatro deles de quem morreu no pouso, e a frase "estamos aqui". Levou onze minutos para transmitir.','good'); }},
+  {t:'Não enviar nada', d:'A colônia decide ser apenas o que é, aqui.',
+   ef:function(a){ a.st.flags.mensagemTerra='nao'; a.st.bonus.moralComando=(a.st.bonus.moralComando||1)+0.8;
+     a.log('"Não somos mais deles", disse alguém no fundo da sala. Ninguém discordou, e o silêncio depois disso durou bastante.','info'); }}
+ ]},
+
+{id:'lg_praga_nova', n:'Algo novo está matando a lavoura', cat:'crise', cd:120,
+ peso:function(st){return (st.sol>180&&st.agricultura.lotes.length>8)?45:0;},
+ txt:'Não é o enxame, não é a ferrugem-de-espora. É um organismo que Raghavan nunca viu, e que aparentemente aprendeu a digerir clorofila terrestre nos últimos duzentos sols.',
+ escolhas:[
+  {t:'Quarentena: queimar os lotes atingidos', d:'Perde a colheita da área. Contém o problema.',
+   ef:function(a){ var p=0; a.st.agricultura.lotes.forEach(function(l){ if(l.crop&&a.rng.chance(0.4)){l.crop=null;l.prog=0;p++;} });
+     a.log(p+' lotes queimados e revirados com cal. A praga parou.','warn'); a.moralAll(-6); }},
+  {t:'Estudar antes de agir', d:'Perde mais lavoura agora. Ganha imunidade depois.',
+   ef:function(a){ a.st.agricultura.lotes.forEach(function(l){ if(l.crop) l.saude-=35; });
+     a.st.bonus.praga=0.55; a.st.tech.pp+=a.rng.int(40,90);
+     a.log('Raghavan isolou o organismo em nove sols. A colônia perdeu muito mais lavoura — e nunca mais vai perder para essa espécie. (+PP)','good'); }}
+ ]},
+
+{id:'lg_veterano', n:'O primeiro a envelhecer', cat:'social', cd:999,
+ peso:function(st){return (st.sol>320&&st.pop>=12&&!st.flags.veteranoIdoso)?55:0;},
+ txt:'Brandt tem 56 anos e um pulmão que funciona pela metade. Ele ainda aparece na oficina todo sol, e todo mundo já percebeu que ele demora mais para levantar do banco.',
+ escolhas:[
+  {t:'Aposentá-lo com honras. Ele ensina, não trabalha', d:'Perde o melhor mecânico da colônia. Ganha uma geração de mecânicos.',
+   ef:function(a){ a.st.flags.veteranoIdoso='ensina'; a.st.bonus.ensino=(a.st.bonus.ensino||1)+0.9;
+     var b=a.st.crew.filter(function(c){return c.id==='brandt';})[0];
+     if(b){ b.forcado='ensino'; b.forcadoAte=99999; b.moral=Math.min(100,b.moral+20); }
+     a.moralAll(+8);
+     a.log('Ele reclamou por três sols. No quarto, apareceu com um caderno e uma lista de vinte coisas que precisava ensinar antes de esquecer.','good'); }},
+  {t:'Deixar que ele decida quando parar', d:'Ele não vai parar. Todo mundo sabe disso.',
+   ef:function(a){ a.st.flags.veteranoIdoso='trabalha';
+     var b=a.st.crew.filter(function(c){return c.id==='brandt';})[0]; if(b) b.moral=Math.min(100,b.moral+14);
+     a.moralAll(+3);
+     a.log('"Eu paro quando não conseguir mais segurar a chave." Foi o fim da conversa.','warn'); }}
+ ]},
+
+{id:'lg_excedente', n:'Sobra comida pela primeira vez', cat:'social', cd:999,
+ peso:function(st){return (st.diasComida>250&&st.pop>=15&&!st.flags.excedente)?70:0;},
+ txt:'Lindqvist recalculou três vezes. Os silos estão cheios, a próxima colheita já está no chão, e pela primeira vez desde o pouso a coluna final da planilha dela não tem uma data.',
+ efe:function(a){ a.st.flags.excedente=a.st.sol; a.moralAll(+20);
+   a.log('Ela ficou olhando a tela por um tempo longo demais, depois fechou o arquivo e foi jantar com os outros — coisa que não fazia desde o sol 8.','good');
+   a.log('A colônia parou de ser um problema de sobrevivência e virou um problema de futuro. São problemas melhores.','good'); }},
+
+{id:'lg_cidade', n:'Isto já é uma cidade', cat:'descoberta', cd:999,
+ peso:function(st){return (st.pop>=30&&st.predios.filter(function(p){return p.pronto;}).length>=40&&!st.flags.cidade)?90:0;},
+ txt:'Alguém precisou fazer um mapa das ruas. Não das rotas de mineração: das ruas. Existem ruas.',
+ efe:function(a){ a.st.flags.cidade=a.st.sol; a.moralAll(+15); a.st.tech.pp+=60;
+   a.log('Trinta e poucas pessoas, quarenta edificações, uma escola, um hospital e um nome que ninguém decidiu oficialmente mas todo mundo usa.','good');
+   a.log('Vosk escreveu no diário: "Ness teria gostado disto. Não do planeta. Da rua."','info'); }},
+
 {id:'primeira_noite', n:'A primeira noite', cat:'descoberta', cd:999, peso:function(st){return (st.sol>=2&&st.sol<=4)?900:0;},
  txt:'A noite aqui dura treze horas e quarenta minutos. Ninguém tinha pensado nisso. Às 19h, Kore sobe inteira sobre a cordilheira — três vezes o tamanho da Lua da Terra, com crateras visíveis a olho nu — e Ilex atravessa o disco dela em quarenta minutos.',
  efe:function(a){ a.moralAll(+6);

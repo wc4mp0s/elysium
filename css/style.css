@@ -415,3 +415,33 @@ h4.fim-h{font-size:10px;letter-spacing:3px;color:var(--dim2);margin:18px 0 8px;f
   .vs .vv{font-size:12px}
   .tabs button{padding:10px 9px;font-size:10px}
 }
+
+/* ---------- CENÁRIOS ---------- */
+.boot-cenarios{width:100%;margin-top:10px;padding:9px;border:1px solid var(--line2);
+  color:var(--dim);font-size:10.5px;letter-spacing:2px}
+.boot-cenarios:hover{border-color:var(--cyan);color:var(--cyan)}
+.boot-cenarios b{color:var(--txt)}
+.cen{max-width:760px;width:100%}
+.cen h2{text-align:center;font-size:15px;letter-spacing:5px;color:var(--cyan);font-weight:400;margin-bottom:6px}
+.cen-sub{text-align:center;color:var(--dim);font-size:11.5px;margin-bottom:20px;line-height:1.6}
+.cen-c{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--cyan);
+  padding:13px 15px;margin-bottom:10px;cursor:pointer;transition:border-color .15s,transform .1s}
+.cen-c:hover{border-color:var(--cyan);transform:translateX(2px)}
+.cen-c.venceu{border-left-color:var(--green)}
+.cen-c.sandbox{border-left-color:var(--purple)}
+.cen-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:5px}
+.cen-h b{font-size:13px;color:var(--txt)}
+.cen-h span{font-size:9.5px;letter-spacing:1px;color:var(--dim2);white-space:nowrap}
+.cen-c p{font-size:11.5px;color:var(--dim);line-height:1.6;margin-bottom:7px}
+.cen-obj{font-size:11px;color:var(--amber);margin-bottom:4px}
+.cen-dica{font-size:10.5px;color:var(--dim2);font-style:italic}
+.cen-ok{color:var(--green);font-size:10px;letter-spacing:1px}
+
+/* ---------- CONQUISTAS ---------- */
+.conq-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:6px}
+.conq{background:var(--panel);border:1px solid var(--line);padding:8px 11px;border-left:3px solid var(--amber)}
+.conq.lock{border-left-color:var(--line2);opacity:.45}
+.conq b{display:block;font-size:11.5px;color:var(--txt)}
+.conq.lock b{color:var(--dim2)}
+.conq span{display:block;font-size:10.5px;color:var(--dim);margin-top:2px}
+.conq i{display:block;font-size:9.5px;color:var(--dim2);font-style:normal;margin-top:3px}

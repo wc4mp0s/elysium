@@ -4,6 +4,7 @@ var EL = window.EL || {}; window.EL = EL;
 EL.SAVE_KEY = 'elysium_save_v1';
 
 EL.DIFICULDADE = {
+  livre:   { n:'Colônia Livre',    consumo:0.45, evento:0.30, risco:0.15, producao:2.60, pp:2.60 },
   facil:   { n:'Sobrevivente',     consumo:0.70, evento:0.60, risco:0.50, producao:1.75, pp:1.75 },
   normal:  { n:'Difícil',          consumo:0.85,evento:0.8,  risco:0.75, producao:1.3,  pp:1.3 },
   extremo: { n:'Realismo Extremo', consumo:1.0, evento:1.0,  risco:1.0,  producao:1.0,  pp:1.0 },

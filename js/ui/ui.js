@@ -673,6 +673,7 @@ EL.UI = (function () {
     st.fimVisto = true;
     try {
       st.arqNovas = EL.Arquivo.verificar(st);
+      EL.Conquistas.verificar(st);
       EL.Arquivo.registrarPartida(st);
       if (st.diario) EL.Diario.registrar(st);
     } catch (e) {}
@@ -792,6 +793,13 @@ EL.UI = (function () {
       if (e.target.closest('[data-arq="fechar"]')) document.getElementById('arqTela').classList.add('hidden');
     });
 
+    /* cenários */
+    document.getElementById('cenTela').addEventListener('click', function (e) {
+      if (e.target.closest('[data-cen-fechar]')) { document.getElementById('cenTela').classList.add('hidden'); return; }
+      var c = e.target.closest('[data-cen]');
+      if (c && window.EL_iniciarCenario) window.EL_iniciarCenario(c.dataset.cen);
+    });
+
     /* diálogos do sistema */
     document.getElementById('dialog').addEventListener('click', function (e) {
       var b = e.target.closest('button[data-dlg]');
@@ -805,6 +813,13 @@ EL.UI = (function () {
     });
   }
 
+  function abrirCenarios() {
+    var w = document.getElementById('cenTela');
+    w.className = 'fimwrap';
+    w.innerHTML = EL.tHTML(EL.CenariosUI.html());
+    w.scrollTop = 0;
+  }
+
   function abrirArquivo() {
     var w = document.getElementById('arqTela');
     w.className = 'fimwrap';
@@ -814,6 +829,7 @@ EL.UI = (function () {
 
   return {
     setState: setState, render: render, bind: bind, toast: toast, abrirArquivo: abrirArquivo,
+    abrirCenarios: abrirCenarios,
     dialogo: dialogo, avisar: avisar, fecharDialogo: fecharDialogo,
     get tab() { return tab; }, set tab(v) { tab = v; }
   };

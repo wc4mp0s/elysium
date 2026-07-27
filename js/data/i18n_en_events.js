@@ -123,6 +123,7 @@ silencio:{n:'Radio silence', txt:'Someone left the long-range receiver on all ni
 
 EL.EN.ferimentos = {
 'Costelas fraturadas':'Fractured ribs',
+'Trauma grave':'Severe trauma',
 'Fêmur fraturado (exposto)':'Fractured femur (open)',
 'Queimadura infectada':'Infected burn',
 'Lacerações profundas':'Deep lacerations',

@@ -4,6 +4,33 @@ var EL = window.EL || {}; window.EL = EL;
 
 EL.SWAP_EN = [
 /* ---- títulos de seção ---- */
+/* ---- aba trabalho reformulada ---- */
+['Trabalho total','Total labour'],
+['Descansando','Resting'],
+['Em expedição','On expedition'],
+['— abrir um posto —','— open a job —'],
+['DESCANSANDO —','RESTING —'],
+['EM EXPEDIÇÃO —','ON EXPEDITION —'],
+['Descanso recupera fadiga em dobro. Ninguém aguenta 100 sols seguidos: deixe sempre alguns fora de escala.',
+ 'Rest recovers fatigue twice as fast. Nobody lasts 100 sols straight: always keep a few off the roster.'],
+['Ninguém descansando. Isso cobra o preço em poucos sols.','Nobody is resting. That collects its price within a few sols.'],
+['Quem assume?','Who takes it?'],
+['fechar ✕','close ✕'],
+['sem perícia','no skill'],
+['perícia ','skill '],
+['descansando','resting'],
+['Ninguém disponível. Tire alguém de outro posto primeiro.','Nobody available. Take someone off another job first.'],
+['POLÍTICAS','POLICIES'],
+['Ração alimentar','Food ration'],
+['Ração de água','Water ration'],
+['autonomia','autonomy'],
+['Abaixo de 85% a fome sobe. A 55% a colônia fica debilitada mas sobrevive.',
+ 'Below 85% hunger rises. At 55% the colony is weakened but survives.'],
+['Abaixo de 75% começam cefaleia e queda de saúde.','Below 75% headaches and falling health begin.'],
+['Vale ~','Worth ~'],
+['Alcance 4 setores.','Range: 4 sectors.'],
+['fora','away'],
+
 /* ---- doutrinas ---- */
 ['ENCRUZILHADA','CROSSROADS'],
 [' DE 3',' OF 3'],

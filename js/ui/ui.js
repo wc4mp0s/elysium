@@ -4,6 +4,7 @@ var EL = window.EL || {}; window.EL = EL;
 EL.UI = (function () {
   var st = null, tab = 'visao', mapSel = EL.BASE_SETOR;
   var expSel = null, expEquipe = {};
+  var pickerJob = null;
 
   function $(s) { return document.querySelector(s); }
   function fmt(n, d) { if (n === undefined || n === null || isNaN(n)) return '—'; d = d === undefined ? 0 : d; return Number(n).toFixed(d).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
@@ -153,6 +154,12 @@ EL.UI = (function () {
   }
 
   /* ================= ABAS ================= */
+  function semPular() {
+    var r = document.getElementById('tabbody').scrollTop;
+    render();
+    document.getElementById('tabbody').scrollTop = r;
+  }
+
   function renderTab() {
     var R = EL.Sim.resumo(st);
     var h = '';
@@ -263,30 +270,169 @@ EL.UI = (function () {
     return o.filter(function (x) { return !x.ok; }).slice(0, 6).concat(o.filter(function (x) { return x.ok; }).slice(0, 3));
   }
 
-  /* ---------- TRABALHO ---------- */
+  /* ---------- TRABALHO ----------
+     Antes: 20 linhas de <select> com 40 opções. O jogador escolhia carreiras.
+     Agora: postos guarnecidos com fichas de pessoas, produção estimada à vista
+     e um clique para tirar ou pôr alguém. */
+
+  function nomeJob(id) { return jobNome(id); }
+
+  /* Quanto aquele posto rende com a equipe atual. */
+  function estimativa(st, jobId, pessoas) {
+    if (!pessoas.length) return '';
+    var soma = 0;
+    if (jobId.indexOf('ext:') === 0) {
+      var p = jobId.split(':'), rec = EL.recursoPorId(p[1]), sid = p[2];
+      if (!rec || !rec.mat) return '';
+      var per = rec.cat === 'Água' ? 'hidrologia' : (rec.cat === 'Flora' || rec.cat === 'Fauna' ? 'biologia' : 'geologia');
+      pessoas.forEach(function (c) { soma += EL.Sim.ptDe(st, c) * (0.55 + 0.10 * (c.per[per] || 0)); });
+      var dif = 1 / (1 + 0.16 * (rec.dif - 1));
+      var tool = EL.Sim.tem(st, 'siderurgia') ? 1.25 : (EL.Sim.tem(st, 'forja_primitiva') ? 1.1 : 1);
+      var q = rec.y * soma * dif * tool * EL.Sim.fatorDistancia(st, sid) * (EL.DIFICULDADE[st.dif].producao || 1);
+      return '~' + Math.round(q) + ' ' + EL.MAT[rec.mat].u + '/sol';
+    }
+    var jd = EL.jobPorId(jobId);
+    if (!jd) return '';
+    pessoas.forEach(function (c) { soma += EL.Sim.ptDe(st, c) * perFatorUI(c, jd.per); });
+    if (jd.tipo === 'pesquisar') return '~' + (soma * 4 * EL.Sim.resumo(st).ppMult).toFixed(1) + ' PP/sol';
+    if (jd.tipo === 'descanso') return pessoas.length + (pessoas.length === 1 ? ' recuperando' : ' recuperando');
+    return soma.toFixed(1) + ' PT';
+  }
+  function perFatorUI(c, per) {
+    if (!per) return 1;
+    if (per === '*ciencia') {
+      var m = 0;
+      EL.PER_CIENCIA.forEach(function (k) { m = Math.max(m, c.per[k] || 0); });
+      return 0.55 + 0.10 * m;
+    }
+    return 0.55 + 0.10 * (c.per[per] || 0);
+  }
+  /* Aptidão de alguém para um posto, para ordenar a lista de escolha. */
+  function aptidao(c, jobId) {
+    if (jobId.indexOf('ext:') === 0) {
+      var rec = EL.recursoPorId(jobId.split(':')[1]);
+      var per = !rec ? null : (rec.cat === 'Água' ? 'hidrologia' : (rec.cat === 'Flora' || rec.cat === 'Fauna' ? 'biologia' : 'geologia'));
+      return per ? (c.per[per] || 0) : 0;
+    }
+    var jd = EL.jobPorId(jobId);
+    if (!jd || !jd.per) return 0;
+    if (jd.per === '*ciencia') { var m = 0; EL.PER_CIENCIA.forEach(function (k) { m = Math.max(m, c.per[k] || 0); }); return m; }
+    return c.per[jd.per] || 0;
+  }
+
+  function fichaPessoa(st, c, remover) {
+    var av = [];
+    if (c.ferimento) av.push('✚');
+    if (c.doente > st.sol) av.push('☣');
+    if (c.fadiga > 80) av.push('▼');
+    if (c.moral < 30) av.push('!');
+    var cl = c.ferimento || c.doente > st.sol ? ' ruim' : (c.fadiga > 80 || c.moral < 30 ? ' aviso' : '');
+    return '<button class="pes' + cl + '"' + (remover ? ' data-tira="' + c.id + '"' : '') + '>' +
+      esc(c.nome.split(' ')[0]) + (av.length ? '<u>' + av.join('') + '</u>' : '') +
+      '<i>' + EL.Sim.ptDe(st, c).toFixed(2) + '</i></button>';
+  }
+
   function tabTrabalho(R) {
+    var vs = EL.Sim.vivos(st);
     var jobs = EL.Sim.jobsDisponiveis(st);
+    var porId = {}; jobs.forEach(function (j) { porId[j.id] = j; });
+
+    /* agrupa a tripulação por posto */
+    var grupos = {}, emExped = [];
+    vs.forEach(function (c) {
+      if (c.emExpedicao) { emExped.push(c); return; }
+      (grupos[c.trabalho] = grupos[c.trabalho] || []).push(c);
+    });
+
     var h = '<h2 class="sec">ALOCAÇÃO DE TRABALHO</h2>';
-    h += '<div class="hint">Cada pessoa produz de 0 a ~1,2 PT por sol, conforme saúde, fadiga, moral, ferimento e o CO₂ de 1,2% da atmosfera. ' +
-      'A perícia multiplica o resultado: nível 0 rende 0,55× · nível 5 rende 1,05× · nível 9 rende 1,45×.</div>';
+
+    /* barra-resumo */
+    h += '<div class="tr-res">' +
+      '<span>Trabalho total <b>' + R.ptTotal.toFixed(1) + ' PT</b></span>' +
+      '<span>Descansando <b>' + (grupos['descanso'] || []).length + '</b></span>' +
+      (emExped.length ? '<span>Em expedição <b>' + emExped.length + '</b></span>' : '') +
+      '<span>Água <b class="' + (R.aguaPassiva - R.aguaLiquida - R.aguaUso >= 0 ? 'good' : 'bad') + '">' +
+        (R.aguaPassiva - R.aguaLiquida - R.aguaUso).toFixed(0) + ' L/sol</b></span>' +
+      '<span>Energia <b class="' + (R.balanco >= 0 ? 'good' : 'bad') + '">' + R.balanco.toFixed(1) + ' kWh</b></span>' +
+      '</div>';
+
+    /* postos guarnecidos */
+    var ativos = Object.keys(grupos).filter(function (k) { return k !== 'descanso'; });
+    ativos.sort(function (a, b) { return grupos[b].length - grupos[a].length; });
+
+    h += '<div class="grid g2 tr-postos">';
+    ativos.forEach(function (jid) {
+      var j = porId[jid], pessoas = grupos[jid];
+      h += '<div class="posto">';
+      h += '<div class="posto-h"><b>' + esc(j ? j.n : nomeJob(jid)) + '</b>' +
+           '<span>' + esc(estimativa(st, jid, pessoas)) + '</span></div>';
+      if (j && j.d) h += '<div class="posto-d">' + esc(j.d) + '</div>';
+      h += '<div class="posto-eq">';
+      pessoas.forEach(function (c) { h += fichaPessoa(st, c, true); });
+      h += '<button class="pes add" data-abre="' + esc(jid) + '">+</button>';
+      h += '</div>';
+      if (jid === 'explorar') {
+        h += '<label class="sub">Setor: <select class="expSel" data-c="' + pessoas[0].id + '">';
+        for (var s2 in st.setores) {
+          if (EL.dist(EL.BASE_SETOR, s2) > 3) continue;
+          h += '<option value="' + s2 + '"' + (pessoas[0].setorTrab === s2 ? ' selected' : '') + '>' +
+               s2 + ' (' + Math.round(st.setores[s2].explorado) + '%)</option>';
+        }
+        h += '</select></label>';
+      }
+      if (pickerJob === jid) h += listaEscolha(st, jid, grupos);
+      h += '</div>';
+    });
+    h += '</div>';
+
+    /* abrir um posto novo */
+    h += '<div class="tr-abrir">';
+    h += '<select id="novoPosto"><option value="">— abrir um posto —</option>';
+    var cats = {};
+    jobs.forEach(function (j) { if (j.id !== 'descanso' && ativos.indexOf(j.id) < 0) (cats[j.cat] = cats[j.cat] || []).push(j); });
+    Object.keys(cats).forEach(function (k) {
+      h += '<optgroup label="' + esc(k) + '">';
+      cats[k].forEach(function (j) { h += '<option value="' + esc(j.id) + '">' + esc(j.n) + '</option>'; });
+      h += '</optgroup>';
+    });
+    h += '</select></div>';
+
+    /* quem está sem posto */
+    var livres = grupos['descanso'] || [];
+    h += '<h4 class="sub2">DESCANSANDO — ' + livres.length + '</h4>';
+    h += '<div class="hint">Descanso recupera fadiga em dobro. Ninguém aguenta 100 sols seguidos: deixe sempre alguns fora de escala.</div>';
+    h += '<div class="posto-eq livres">';
+    if (!livres.length) h += '<span class="sub">Ninguém descansando. Isso cobra o preço em poucos sols.</span>';
+    livres.forEach(function (c) { h += fichaPessoa(st, c, false); });
+    h += '</div>';
+
+    if (emExped.length) {
+      h += '<h4 class="sub2">EM EXPEDIÇÃO — ' + emExped.length + '</h4><div class="posto-eq livres">';
+      emExped.forEach(function (c) { h += '<button class="pes fora">' + esc(c.nome.split(' ')[0]) + '<i>fora</i></button>'; });
+      h += '</div>';
+    }
 
     /* políticas */
-    h += '<div class="grid g2"><div class="card"><h5>Política de ração alimentar</h5>' +
+    h += '<h4 class="sub2">POLÍTICAS</h4><div class="grid g2">';
+    h += '<div class="card"><h5>Ração alimentar</h5>' +
       '<input type="range" id="racaoComida" min="40" max="120" value="' + Math.round(st.politica.racaoComida * 100) + '">' +
-      '<div class="meta">Atual: <b>' + Math.round(st.politica.racaoComida * 100) + '%</b> · consumo ' + R.comidaDia.toFixed(1) + ' rações/sol · autonomia ' + R.diasComida.toFixed(1) + ' sols</div>' +
-      '<p>Abaixo de 85% a fome sobe e a saúde cai. Abaixo de 60% a colônia perde produtividade rapidamente.</p></div>';
-    h += '<div class="card"><h5>Política de ração de água</h5>' +
+      '<div class="meta"><b>' + Math.round(st.politica.racaoComida * 100) + '%</b> · consumo ' + R.comidaDia.toFixed(1) +
+      '/sol · autonomia ' + R.diasComida.toFixed(0) + ' sols</div>' +
+      '<p>Abaixo de 85% a fome sobe. A 55% a colônia fica debilitada mas sobrevive.</p></div>';
+    h += '<div class="card"><h5>Ração de água</h5>' +
       '<input type="range" id="racaoAgua" min="50" max="120" value="' + Math.round(st.politica.racaoAgua * 100) + '">' +
-      '<div class="meta">Atual: <b>' + Math.round(st.politica.racaoAgua * 100) + '%</b> · bruto ' + R.aguaBruta.toFixed(0) + ' L/sol · perda líquida ' + R.aguaLiquida.toFixed(0) + ' L/sol</div>' +
-      '<p>Abaixo de 75% começam cefaleia, irritação e queda de saúde. Higiene reduzida aumenta o risco de surto.</p></div></div>';
+      '<div class="meta"><b>' + Math.round(st.politica.racaoAgua * 100) + '%</b> · perda líquida ' + R.aguaLiquida.toFixed(0) + ' L/sol</div>' +
+      '<p>Abaixo de 75% começam cefaleia e queda de saúde.</p></div>';
+    h += '</div>';
 
-    /* robôs */
+    /* máquinas */
     h += '<h4 class="sub2">MÁQUINAS</h4><div class="grid g2">';
     h += '<div class="card"><h5>ATLAS-1 · ' + Math.round(st.robos.atlas.integridade) + '%</h5>' +
-      '<div class="meta">Equivale a ~' + (6 * st.robos.atlas.integridade / 100).toFixed(1) + ' PT. Degrada com o uso.</div>' +
-      '<select id="atlasTarefa"><option value="ocioso">Ocioso (poupa integridade)</option>' +
-      '<option value="construir">Obras</option><option value="escavar">Escavar pedra e argila</option>' +
-      '<option value="extrair">Extração de recurso</option></select> ';
+      '<div class="meta">Vale ~' + (6 * st.robos.atlas.integridade / 100 * (st.bonus.robo || 1)).toFixed(1) + ' PT. Degrada com o uso.</div>' +
+      '<select id="atlasTarefa"><option value="ocioso"' + (st.robos.atlas.tarefa === 'ocioso' ? ' selected' : '') + '>Ocioso (poupa integridade)</option>' +
+      '<option value="construir"' + (st.robos.atlas.tarefa === 'construir' ? ' selected' : '') + '>Obras</option>' +
+      '<option value="escavar"' + (st.robos.atlas.tarefa === 'escavar' ? ' selected' : '') + '>Escavar pedra e argila</option>' +
+      '<option value="extrair"' + (st.robos.atlas.tarefa === 'extrair' ? ' selected' : '') + '>Extração de recurso</option></select> ';
     if (st.robos.atlas.tarefa === 'extrair') {
       h += '<select id="atlasRec">';
       jobs.filter(function (j) { return !j.fixo; }).forEach(function (j) {
@@ -296,62 +442,31 @@ EL.UI = (function () {
     }
     h += '</div>';
     h += '<div class="card"><h5>KITE · ' + Math.round(st.robos.kite.integridade) + '%</h5>' +
-      '<div class="meta">Levanta ' + (EL.Sim.tem(st, 'cartografia') ? '33' : '11') + '% de um setor por sol. Alcance 4 setores da base.</div>' +
+      '<div class="meta">Levanta ' + (EL.Sim.tem(st, 'cartografia') ? '33' : '11') + '% de um setor por sol. Alcance 4 setores.</div>' +
       '<select id="kiteAlvo"><option value="">— não voar —</option>';
     for (var sid in st.setores) {
-      if (EL.dist(EL.BASE_SETOR, sid) > 4) continue;
-      if (st.setores[sid].explorado >= 100) continue;
+      if (EL.dist(EL.BASE_SETOR, sid) > 4 || st.setores[sid].explorado >= 100) continue;
       h += '<option value="' + sid + '"' + (st.robos.kite.alvo === sid ? ' selected' : '') + '>' + sid + ' — ' +
         EL.BIOMAS[EL.bioma(sid)].nome + ' (' + Math.round(st.setores[sid].explorado) + '%)</option>';
     }
     h += '</select></div></div>';
+    return h;
+  }
 
-    /* tabela de alocação */
-    h += '<h4 class="sub2">POSTOS</h4>';
-    h += '<table class="tbl resp"><thead><tr><th>Sobrevivente</th><th>Estado</th><th>PT</th><th>Posto</th><th>Perícia relevante</th></tr></thead><tbody>';
-    EL.Sim.vivos(st).forEach(function (c) {
-      var pt = EL.Sim.ptDe(st, c);
-      var estado = [];
-      if (c.ferimento) estado.push('<span class="tag no">' + esc(c.ferimento.n) + '</span>');
-      if (c.doente > st.sol) estado.push('<span class="tag no">doente</span>');
-      if (c.forcado && c.forcadoAte > st.sol) estado.push('<span class="tag hi">forçado: ' + c.forcado + '</span>');
-      if (c.fadiga > 80) estado.push('<span class="tag no">exausto</span>');
-      if (c.moral < 30) estado.push('<span class="tag no">moral baixa</span>');
-      if (!estado.length) estado.push('<span class="tag ok">apto</span>');
-
-      var sel = '<select class="jobSel" data-c="' + c.id + '">';
-      var cats = {};
-      jobs.forEach(function (j) { (cats[j.cat] = cats[j.cat] || []).push(j); });
-      Object.keys(cats).forEach(function (k) {
-        sel += '<optgroup label="' + esc(k) + '">';
-        cats[k].forEach(function (j) {
-          sel += '<option value="' + esc(j.id) + '"' + (c.trabalho === j.id ? ' selected' : '') + '>' + esc(j.n) + '</option>';
-        });
-        sel += '</optgroup>';
-      });
-      sel += '</select>';
-      if (c.trabalho === 'explorar') {
-        sel += ' <select class="expSel" data-c="' + c.id + '">';
-        for (var s2 in st.setores) {
-          if (EL.dist(EL.BASE_SETOR, s2) > 3) continue;
-          sel += '<option value="' + s2 + '"' + (c.setorTrab === s2 ? ' selected' : '') + '>' + s2 + ' (' + Math.round(st.setores[s2].explorado) + '%)</option>';
-        }
-        sel += '</select>';
-      }
-      var jd = EL.jobPorId(c.trabalho);
-      var perTxt = '—';
-      if (jd && jd.per && jd.per !== '*ciencia') perTxt = EL.PERICIAS[jd.per] + ' ' + (c.per[jd.per] || 0);
-      else if (jd && jd.per === '*ciencia') perTxt = 'ciência (melhor)';
-      else if (c.trabalho.indexOf('ext:') === 0) perTxt = 'campo';
-
-      h += '<tr><td><b>' + esc(c.nome) + '</b> <span class="sub">' + esc(c.func) + '</span></td>' +
-        '<td>' + estado.join(' ') + '</td>' +
-        '<td class="n" data-l="TRABALHO">' + pt.toFixed(2) + ' PT · ' + perTxt + '</td>' +
-        '<td data-l="POSTO">' + sel + '</td><td class="n desk-only">' + perTxt + '</td></tr>';
+  /* Lista de quem pode assumir um posto, ordenada por aptidão. */
+  function listaEscolha(st, jid, grupos) {
+    var disp = EL.Sim.vivos(st).filter(function (c) {
+      return !c.emExpedicao && c.trabalho !== jid;
     });
-    h += '</tbody></table>';
-    h += '<div class="hint" style="margin-top:10px">Total disponível neste sol: <b>' + R.ptTotal.toFixed(2) + ' PT</b> humanos' +
-      (st.robos.atlas.ativo ? ' + <b>' + (6 * st.robos.atlas.integridade / 100).toFixed(1) + ' PT</b> de ATLAS-1' : '') + '.</div>';
+    disp.sort(function (a, b) { return aptidao(b, jid) - aptidao(a, jid); });
+    var h = '<div class="escolha"><div class="escolha-h">Quem assume? <button class="x" data-abre="">fechar ✕</button></div>';
+    disp.slice(0, 24).forEach(function (c) {
+      var ap = aptidao(c, jid);
+      h += '<button class="esc-p" data-poe="' + c.id + '|' + esc(jid) + '">' +
+        esc(c.nome.split(' ')[0]) + '<i>' + (ap ? 'perícia ' + ap : 'sem perícia') +
+        ' · ' + esc(c.trabalho === 'descanso' ? 'descansando' : nomeJob(c.trabalho)) + '</i></button>';
+    });
+    h += '</div>';
     return h;
   }
 
@@ -798,6 +913,19 @@ EL.UI = (function () {
         var e3 = EL.Sim.addProducao(st, t.dataset.prod, parseInt(t.dataset.q, 10)); if (e3) toast(e3); render(); EL.salvar(st);
       } else if (t.dataset.delprod) {
         st.filaProducao.splice(parseInt(t.dataset.delprod, 10), 1); render(); EL.salvar(st);
+      } else if (t.dataset.tira) {
+        var ct = st.crew.filter(function (x) { return x.id === t.dataset.tira; })[0];
+        if (ct) ct.trabalho = 'descanso';
+        semPular(); EL.salvar(st); return;
+      } else if (t.dataset.abre !== undefined) {
+        pickerJob = t.dataset.abre || null;
+        semPular(); return;
+      } else if (t.dataset.poe) {
+        var pp = t.dataset.poe.split('|');
+        var cp = st.crew.filter(function (x) { return x.id === pp[0]; })[0];
+        if (cp) { cp.trabalho = pp.slice(1).join('|'); if (cp.trabalho === 'explorar' && !cp.setorTrab) cp.setorTrab = EL.BASE_SETOR; }
+        pickerJob = null;
+        semPular(); EL.salvar(st); return;
       } else if (t.dataset.dem) {
         var errD = EL.Demandas.resolver(st, t.dataset.dem === 'sim', EL.Sim.apiUI(st));
         if (errD) toast(errD); else { render(); EL.salvar(st); }
@@ -844,6 +972,14 @@ EL.UI = (function () {
         st.robos.atlas.tarefa = el.value; render(); EL.salvar(st);
       } else if (el.id === 'atlasRec') {
         var pr = el.value.split('|'); st.robos.atlas.recurso = pr[0]; st.robos.atlas.setor = pr[1]; EL.salvar(st);
+      } else if (el.id === 'novoPosto') {
+        if (!el.value) return;
+        var livre = EL.Sim.vivos(st).filter(function (c) { return !c.emExpedicao && c.trabalho === 'descanso'; });
+        livre.sort(function (a, b) { return aptidao(b, el.value) - aptidao(a, el.value); });
+        if (!livre.length) { toast('Ninguém disponível. Tire alguém de outro posto primeiro.'); return; }
+        livre[0].trabalho = el.value;
+        if (el.value === 'explorar') livre[0].setorTrab = EL.BASE_SETOR;
+        render(); EL.salvar(st);
       } else if (el.id === 'expSetor') {
         expSel = el.value;
         var rol2 = document.getElementById('tabbody').scrollTop;

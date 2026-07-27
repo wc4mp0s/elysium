@@ -1,0 +1,6 @@
+.DS_Store
+Thumbs.db
+*.log
+elysium-sol*.json
+.vscode/
+.idea/

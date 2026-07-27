@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PROJECT ELYSIUM — Simulador de Colonização</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="boot" class="boot">
+  <div class="boot-box">
+    <h1>PROJECT<span>ELYSIUM</span></h1>
+    <p class="boot-sub">Simulador de colonização planetária</p>
+    <div class="boot-desc">
+      <p>A <strong>NAV Perseverança</strong> caiu no planeta EL-7742. Vinte sobreviventes.
+      Quarenta sols de comida. Trinta e um de água. Nenhum resgate — nunca.</p>
+      <p>Você comanda. Cada sol é um turno. Cada decisão altera o futuro.</p>
+    </div>
+    <label class="boot-seed">Semente do mundo
+      <input id="seedInput" type="text" value="ELYSIUM-1" maxlength="24">
+    </label>
+    <div class="boot-diff">
+      <button class="diffBtn sel" data-diff="facil">SOBREVIVENTE</button>
+      <button class="diffBtn" data-diff="normal">DIFÍCIL</button>
+      <button class="diffBtn" data-diff="extremo">EXTREMO</button>
+      <button class="diffBtn" data-diff="brutal">BRUTAL</button>
+    </div>
+    <div class="boot-actions">
+      <button id="btnNewGame" class="big">INICIAR COLÔNIA</button>
+      <button id="btnLoadGame" class="big ghost">CONTINUAR</button>
+    </div>
+    <p class="boot-dif" id="bootDifTxt"></p>
+    <p class="boot-foot">Salvamento automático no navegador. Nenhum dado sai do seu computador.</p>
+  </div>
+</div>
+
+<div id="app" class="app hidden">
+
+  <header class="topbar">
+    <div class="tb-logo">ELYSIUM</div>
+    <div class="tb-clock">
+      <span class="tb-sol">SOL <b id="hdSol">1</b></span>
+      <span class="tb-date" id="hdDate">Ano 1 · Verdejo 34</span>
+    </div>
+    <div class="tb-weather" id="hdWeather">—</div>
+    <div class="tb-stats" id="hdStats"></div>
+    <div class="tb-right">
+      <button id="btnLang" class="mini" title="Language">EN</button>
+      <button id="btnSide" class="mini only-mob" aria-label="Recursos">☰</button>
+      <button id="btnSave" class="mini">Salvar</button>
+      <button id="btnMenu" class="mini">Menu</button>
+    </div>
+  </header>
+
+  <div class="vitstrip only-mob" id="vitStrip"></div>
+  <div class="alertbar" id="alertBar"></div>
+
+  <div class="layout">
+
+    <div class="side-veu" id="sideVeu"></div>
+    <aside class="side" id="side">
+      <div class="panel">
+        <h3>ESTOQUE VITAL</h3>
+        <div id="vitals"></div>
+      </div>
+      <div class="panel">
+        <h3>ENERGIA</h3>
+        <div id="energyPanel"></div>
+      </div>
+      <div class="panel">
+        <h3>MATERIAIS</h3>
+        <div id="matsPanel" class="mats"></div>
+      </div>
+      <div class="panel">
+        <h3>MÁQUINAS</h3>
+        <div id="machPanel"></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div id="tutSlot"></div>
+      <nav class="tabs" id="tabs">
+        <button data-tab="visao" class="sel">Visão Geral</button>
+        <button data-tab="trabalho">Trabalho</button>
+        <button data-tab="tripulacao">Tripulação</button>
+        <button data-tab="construcao">Construção</button>
+        <button data-tab="pesquisa">Pesquisa</button>
+        <button data-tab="agricultura">Agricultura</button>
+        <button data-tab="oficina">Oficina</button>
+        <button data-tab="mapa">Mapa</button>
+        <button data-tab="catalogo">Catálogo</button>
+        <button data-tab="registro">Registro</button>
+      </nav>
+      <section class="tabbody" id="tabbody"></section>
+    </main>
+
+  </div>
+
+  <footer class="bottombar">
+    <div class="bb-labor" id="bbLabor"></div>
+    <div class="bb-actions">
+      <button id="btnAdvance" class="advance">AVANÇAR 1 SOL ▸</button>
+      <button id="btnAdvance5" class="advance small">▸▸ 5 SOLS</button>
+    </div>
+  </footer>
+
+</div>
+
+<div id="modal" class="modal hidden">
+  <div class="modal-box" id="modalBox"></div>
+</div>
+
+<div id="fimTela" class="fimwrap hidden"></div>
+
+<div id="dialog" class="modal dlg-wrap hidden">
+  <div class="dlg" id="dialogBox"></div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="js/engine/rng.js"></script>
+<script src="js/data/world.js"></script>
+<script src="js/data/resources.js"></script>
+<script src="js/data/crew.js"></script>
+<script src="js/data/tech.js"></script>
+<script src="js/data/buildings.js"></script>
+<script src="js/data/crops.js"></script>
+<script src="js/data/jobs.js"></script>
+<script src="js/data/events.js"></script>
+<script src="js/data/i18n.js"></script>
+<script src="js/data/i18n_en.js"></script>
+<script src="js/data/i18n_en_events.js"></script>
+<script src="js/data/i18n_en_ui.js"></script>
+<script src="js/engine/state.js"></script>
+<script src="js/engine/sim.js"></script>
+<script src="js/ui/onboarding.js"></script>
+<script src="js/ui/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

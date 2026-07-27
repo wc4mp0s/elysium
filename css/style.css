@@ -515,3 +515,28 @@ h4.fim-h{font-size:10px;letter-spacing:3px;color:var(--dim2);margin:18px 0 8px;f
 .exp-info b{color:var(--txt)}
 .exp-info b.good{color:var(--green)} .exp-info b.warn{color:var(--amber)} .exp-info b.bad{color:var(--red)}
 .exp-prev{font-size:11px;color:var(--cyan);margin-bottom:10px}
+
+/* ---------- ENCRUZILHADA DE DOUTRINA ---------- */
+.dou-wrap{background:radial-gradient(ellipse at 50% 0%,#1a1726,#04070a 70%)}
+.dou{max-width:820px;width:100%}
+.dou-tag{text-align:center;font-size:10px;letter-spacing:4px;color:var(--purple);margin-bottom:10px}
+.dou h2{text-align:center;font-size:17px;letter-spacing:4px;color:var(--txt);font-weight:400;margin-bottom:12px}
+.dou-sub{text-align:center;color:var(--dim);font-size:12px;line-height:1.7;margin-bottom:24px;
+  max-width:620px;margin-left:auto;margin-right:auto}
+.dou-ops{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+.dou-op{text-align:left;background:var(--panel);border:1px solid var(--line2);padding:14px 15px;
+  display:flex;flex-direction:column;gap:8px;transition:border-color .15s,transform .1s}
+.dou-op:hover{border-color:var(--purple);transform:translateY(-2px);background:var(--panel2)}
+.dou-op b{font-size:13px;letter-spacing:2px;color:var(--amber)}
+.dou-d{font-size:11.5px;color:var(--dim);line-height:1.65}
+.dou-l{display:flex;flex-direction:column;gap:2px;margin-top:2px}
+.dou-l i{font-size:10.5px;font-style:normal;line-height:1.5}
+.dou-l i.bom{color:var(--green)}
+.dou-l i.ruim{color:var(--red)}
+.dou-aviso{text-align:center;color:var(--dim2);font-size:11px;margin-top:20px;font-style:italic}
+
+.dou-atual{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin-bottom:16px}
+.dou-a{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--purple);padding:9px 12px}
+.dou-a b{display:block;font-size:12px;letter-spacing:1.5px;color:var(--amber)}
+.dou-a span{display:block;font-size:9.5px;color:var(--dim2);margin:2px 0 4px}
+.dou-a i{display:block;font-size:10.5px;color:var(--green);font-style:normal;line-height:1.5}

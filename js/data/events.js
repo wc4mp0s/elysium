@@ -360,7 +360,7 @@ EL.EVENTOS = [
    a.log('Recuperação de água caiu 10 pontos. Reparo exige polímero ou uma vedação nova.','bad'); }},
 
 {id:'parto_risco', n:'Gravidez', cat:'saude', cd:200,
- peso:function(st){ return (st.sol>180&&st.moralMedia>58&&st.comidaSegura)?18:0; },
+ peso:function(st){ return (st.sol>180&&st.moralMedia>58&&st.comidaSegura)?18*(st.bonus.natalidade||1):0; },
  txt:'Nakamura confirma. A primeira gravidez de Elysium.',
  efe:function(a){ a.st.flags.gravidez=a.st.sol+270; a.moralAll(+12);
    a.log('Parto previsto para o sol '+a.st.flags.gravidez+'. A colônia inteira mudou de humor num único dia.','good'); }},

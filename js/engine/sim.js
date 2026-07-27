@@ -66,9 +66,13 @@ EL.Sim = (function () {
     if (per === '*ciencia') {
       var m = 0;
       for (var i = 0; i < EL.PER_CIENCIA.length; i++) m = Math.max(m, c.per[EL.PER_CIENCIA[i]] || 0);
-      return 0.55 + 0.10 * m;
+      var fm = 0.55 + 0.10 * m;
+      if (EL._bonusPerAlta && m >= 7) fm *= EL._bonusPerAlta;
+      return fm;
     }
-    return 0.55 + 0.10 * (c.per[per] || 0);
+    var f = 0.55 + 0.10 * (c.per[per] || 0);
+    if (EL._bonusPerAlta && (c.per[per] || 0) >= 7) f *= EL._bonusPerAlta;
+    return f;
   }
 
   /* ============ POSTOS DISPONÍVEIS ============ */
@@ -133,11 +137,11 @@ EL.Sim = (function () {
     R.abrigo = Math.floor(12 + efPredios(st, 'abrigo', 'sum'));            // 12 = casco da nave
     R.abrigoDeficit = Math.max(0, pop - R.abrigo);
     R.conforto = efPredios(st, 'conforto', 'sum');
-    R.defesa = Math.round(efPredios(st, 'defesa', 'sum'));
+    R.defesa = Math.round(efPredios(st, 'defesa', 'sum') * (st.bonus.defesa || 1));
     R.labSlots = Math.floor(efPredios(st, 'labSlots', 'sum'));
     R.ppMult = Math.max(1, efPredios(st, 'ppMult', 'max')) * efTech(st, 'pesquisaMult', 'mult') * (st.bonus.pesquisa || 1);
     R.oficina = Math.floor(efPredios(st, 'oficina', 'sum'));
-    R.fabMult = Math.max(1, efPredios(st, 'fabMult', 'max')) * efTech(st, 'fabricacaoMult', 'mult');
+    R.fabMult = Math.max(1, efPredios(st, 'fabMult', 'max')) * efTech(st, 'fabricacaoMult', 'mult') * (st.bonus.fabricacao || 1);
     R.leitos = Math.floor(efPredios(st, 'leitos', 'sum'));
     R.curaMult = Math.max(1, efPredios(st, 'curaMult', 'max')) * efTech(st, 'curaMult', 'max' ) || 1;
     if (!R.curaMult || R.curaMult < 1) R.curaMult = 1;
@@ -198,7 +202,7 @@ EL.Sim = (function () {
       if (b2 && b2.up && b2.up.agua) upAgua += b2.up.agua;
     }
     R.aguaUso = upAgua;
-    R.aguaPassiva = efPredios(st, 'aguaProd', 'sum') + st.agua.fontes;
+    R.aguaPassiva = (efPredios(st, 'aguaProd', 'sum') + st.agua.fontes) * (st.bonus.agua || 1);
     R.aguaNet = R.aguaPassiva - R.aguaLiquida - upAgua;
 
     /* --- alimento --- */
@@ -297,7 +301,8 @@ EL.Sim = (function () {
   function iniciarObra(st, bid, setor) {
     var err = podeConstruir(st, bid, setor); if (err) return err;
     var b = EL.buildPorId(bid);
-    for (var m in b.mat) if (b.mat[m] > 0) st.mat[m] -= b.mat[m];
+    var desc = (st.bonus.canteiroBarato && bid === 'canteiro') ? 0.5 : 1;
+    for (var m in b.mat) if (b.mat[m] > 0) st.mat[m] -= b.mat[m] * desc;
     st.predios.push({ uid: st.uidPredio++, id: bid, setor: setor || EL.BASE_SETOR, pronto: false, ptFeito: 0, hp: 100 });
     EL.logar(st, 'Obra iniciada: ' + b.n + (setor && setor !== EL.BASE_SETOR ? ' em ' + setor : '') + ' (' + b.pt + ' PT).', 'info');
     return null;
@@ -358,6 +363,8 @@ EL.Sim = (function () {
     EL.logar(st, '— SOL ' + st.sol + ' · ' + st.clima.estacaoNome + ' ' + st.clima.solAno + ' · ' + st.clima.cond +
       ' · ' + st.clima.temp + '°C (mín ' + st.clima.tempMin + '°C)', 'sol');
 
+    EL._bonusPerAlta = st.bonus.periciaAlta || 0;
+    EL._bonusAprend = st.bonus.aprendizado || 1;
     var R = resumo(st);
     st.crise = (R.diasComida < 10 || R.diasAgua < 6);
 
@@ -403,13 +410,13 @@ EL.Sim = (function () {
     /* ---------- 2. ROBÔS ---------- */
     var atlas = st.robos.atlas;
     if (atlas.ativo && atlas.integridade > 20) {
-      var apt = 6 * (atlas.integridade / 100) * (atlas.overclock ? 1.3 : 1);
+      var apt = 6 * (atlas.integridade / 100) * (atlas.overclock ? 1.3 : 1) * (st.bonus.robo || 1);
       if (atlas.tarefa === 'construir') acc.construir += apt;
       else if (atlas.tarefa === 'extrair' && atlas.recurso) {
         var kk = atlas.recurso + ':' + atlas.setor;
         extrai[kk] = (extrai[kk] || 0) + apt * 0.9 * fatorDistancia(st, atlas.setor);
       } else if (atlas.tarefa === 'escavar') { st.mat.pedra += 55 * apt / 6 * 6; st.mat.argila += 22 * apt / 6 * 3; }
-      atlas.integridade -= (atlas.overclock ? 1.5 : 0.6) * D.risco;
+      atlas.integridade -= (atlas.overclock ? 1.5 : 0.6) * D.risco * (st.bonus.roboDesgaste || 1);
       if (atlas.overclock && rng.chance(0.02)) { atlas.integridade -= 25; EL.logar(st, 'ATLAS-1 sofreu uma falha grave pelo overclock.', 'bad'); }
       if (atlas.integridade <= 20) { atlas.ativo = false; EL.logar(st, 'ATLAS-1 parou. Integridade crítica.', 'bad'); }
     }
@@ -649,7 +656,8 @@ EL.Sim = (function () {
       + (st.bonus.moralComando ? st.bonus.moralComando * 3 : 0)
       + (st.bonus.moralAlcool ? 5 : 0) - (st.crise ? 8 : 0)
       + (st.mortos.length > 4 ? -(st.mortos.length - 4) * 1.2 : 0)
-      + ((R2.diasComida > 30 && R2.diasAgua > 20 && R2.abrigoDeficit === 0) ? 12 : 0);
+      + ((R2.diasComida > 30 && R2.diasAgua > 20 && R2.abrigoDeficit === 0) ? 12 : 0)
+      + (st.bonus.moral || 0);
     var apoioPsi = acc.apoio * 9;
 
     for (var n1 = 0; n1 < vs.length; n1++) {
@@ -732,7 +740,7 @@ EL.Sim = (function () {
 
     /* ---------- 16. MANUTENÇÃO E DESGASTE ---------- */
     var nPred = st.predios.filter(function (p) { return p.pronto; }).length || 1;
-    var desgaste = 0.45 * D.risco * (st.bonus.risco || 1) - (acc.manutencao * 9) / nPred;
+    var desgaste = 0.45 * D.risco * (st.bonus.risco || 1) * (st.bonus.desgaste || 1) - (acc.manutencao * 9) / nPred;
     for (var d1 = st.predios.length - 1; d1 >= 0; d1--) {
       var pd = st.predios[d1]; if (!pd.pronto) continue;
       pd.hp -= Math.max(-2, desgaste) * (st.clima.cond === 'tempestade' ? 2 : 1);
@@ -750,6 +758,12 @@ EL.Sim = (function () {
       }
     }
     st.agua.recicladorDano = Math.max(0, st.agua.recicladorDano - (acc.manutencao > 0.5 ? 0.03 : 0));
+
+    /* ---------- 16a. ENCRUZILHADA DE DOUTRINA ---------- */
+    try {
+      var dPend = EL.Doutrinas.pendente(st);
+      if (dPend) st.doutrinaPendente = dPend.id; else st.doutrinaPendente = null;
+    } catch (e) {}
 
     /* ---------- 16b. EXPEDIÇÃO E DEMANDAS ---------- */
     var apiED = criarApi(st, rng, resumo(st));
@@ -887,7 +901,7 @@ EL.Sim = (function () {
   }
   function ganharXP(c, per, mult) {
     if (!per) return;
-    c.xp[per] = (c.xp[per] || 0) + 1 * (mult || 1) * (c.tracos.indexOf('aprendiz') >= 0 ? 2.2 : 1);
+    c.xp[per] = (c.xp[per] || 0) + 1 * (mult || 1) * (c.tracos.indexOf('aprendiz') >= 0 ? 2.2 : 1) * (EL._bonusAprend || 1);
   }
   function aplicarXP(st, bonusEnsino) {
     var vs = vivos(st);

@@ -450,6 +450,15 @@ EL.UI = (function () {
   /* ---------- PESQUISA ---------- */
   function tabPesquisa(R) {
     var h = '<h2 class="sec">PESQUISA</h2>';
+    var dou = EL.Doutrinas.resumo(st);
+    if (dou.length) {
+      h += '<div class="dou-atual">';
+      dou.forEach(function (x) {
+        h += '<div class="dou-a"><b>' + esc(x.op.n) + '</b><span>' + esc(x.t) + '</span>' +
+             '<i>' + esc(x.op.bom.join(' · ')) + '</i></div>';
+      });
+      h += '</div>';
+    }
     h += '<div class="hint">Geração: <b>' + (st.ppHoje || 0).toFixed(1) + ' PP</b> no último sol · vagas de laboratório: <b>' + R.labSlots + '</b> · multiplicador <b>' + R.ppMult.toFixed(2) + '×</b> · PP acumulados livres: <b>' + fmt(st.tech.pp) + '</b>.<br>' +
       'Coloque pessoas no posto "Pesquisa". Mais pesquisadores do que vagas não gera mais PP. Projetos ativos dividem os PP entre si.</div>';
     if (st.tech.ativa.length) {
@@ -745,7 +754,7 @@ EL.UI = (function () {
     st.setoresExplorados = 0;
     for (var sx in st.setores) if (st.setores[sx].explorado >= 50) st.setoresExplorados++;
     if (st.tutorial && st.tutorial.ativo) EL.Tutorial.verificar(st);
-    renderTopo(R); renderSide(R); renderTab(); renderBottom(R); renderPendente();
+    renderTopo(R); renderSide(R); renderTab(); renderBottom(R); renderPendente(); renderDoutrina();
     document.getElementById('tutSlot').innerHTML = EL.tHTML(EL.Tutorial.html(st));
     renderFim();
   }
@@ -902,6 +911,17 @@ EL.UI = (function () {
       if (e.target.closest('[data-arq="fechar"]')) document.getElementById('arqTela').classList.add('hidden');
     });
 
+    /* encruzilhada de doutrina */
+    document.getElementById('douTela').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-dou]'); if (!b) return;
+      var p = b.dataset.dou.split('|');
+      var err = EL.Doutrinas.escolher(st, p[0], p[1]);
+      if (err) { toast(err); return; }
+      st.doutrinaPendente = null;
+      this.classList.add('hidden'); this.dataset.aberta = '';
+      render(); EL.salvar(st);
+    });
+
     /* cenários */
     document.getElementById('cenTela').addEventListener('click', function (e) {
       if (e.target.closest('[data-cen-fechar]')) { document.getElementById('cenTela').classList.add('hidden'); return; }
@@ -920,6 +940,35 @@ EL.UI = (function () {
       if (e.key === 'Escape') { e.preventDefault(); fecharDialogo(false); }
       else if (e.key === 'Enter') { e.preventDefault(); fecharDialogo(true); }
     });
+  }
+
+  function renderDoutrina() {
+    var w = document.getElementById('douTela');
+    if (!st.doutrinaPendente) { w.classList.add('hidden'); return; }
+    if (w.dataset.aberta === st.doutrinaPendente) return;
+    var d = EL.Doutrinas.porId(st.doutrinaPendente);
+    if (!d) { w.classList.add('hidden'); return; }
+    w.dataset.aberta = st.doutrinaPendente;
+    var h = '<div class="dou">';
+    h += '<div class="dou-tag">ENCRUZILHADA ' + d.ordem + ' DE 3</div>';
+    h += '<h2>' + esc(d.t) + '</h2>';
+    h += '<p class="dou-sub">' + esc(d.d) + '</p>';
+    h += '<div class="dou-ops">';
+    d.ops.forEach(function (o) {
+      h += '<button class="dou-op" data-dou="' + d.id + '|' + o.id + '">';
+      h += '<b>' + esc(o.n) + '</b>';
+      h += '<span class="dou-d">' + esc(o.d) + '</span>';
+      h += '<span class="dou-l">';
+      o.bom.forEach(function (x) { h += '<i class="bom">+ ' + esc(x) + '</i>'; });
+      o.ruim.forEach(function (x) { h += '<i class="ruim">− ' + esc(x) + '</i>'; });
+      h += '</span></button>';
+    });
+    h += '</div>';
+    h += '<p class="dou-aviso">Esta escolha é permanente. As outras duas não voltam nesta partida.</p>';
+    h += '</div>';
+    w.className = 'fimwrap dou-wrap';
+    w.innerHTML = EL.tHTML(h);
+    w.scrollTop = 0;
   }
 
   function abrirCenarios() {

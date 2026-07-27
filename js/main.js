@@ -3,26 +3,26 @@
   var st = null, dif = 'extremo';
 
   EL.aplicarIdioma();
-  aplicarTextoUI();
 
   function aplicarTextoUI() {
-    var T = EL.t;
+    var T = EL.t, en = EL.LANG === 'en';
     function set(sel, v) { var e = document.querySelector(sel); if (e) e.textContent = v; }
-    function setHTML(sel, v) { var e = document.querySelector(sel); if (e) e.innerHTML = v; }
-    set('.boot-sub', T('subtitulo'));
-    var pd = document.querySelectorAll('.boot-desc p');
-    if (pd[0]) pd[0].innerHTML = T('introA');
-    if (pd[1]) pd[1].innerHTML = T('introB');
-    var lbl = document.querySelector('.boot-seed');
-    if (lbl) lbl.childNodes[0].nodeValue = T('semente') + ' ';
-    set('#btnNewGame', T('iniciar'));
-    set('#btnLoadGame', T('continuar'));
-    set('.boot-foot', T('rodape'));
-    set('#btnSave', T('salvar'));
-    set('#btnMenu', T('menu'));
-    set('#btnAdvance', T('avancar1'));
-    set('#btnAdvance5', T('avancar5'));
-    document.getElementById('btnLang').textContent = EL.LANG === 'en' ? 'PT' : 'EN';
+    set('#bootPitch', en ? 'Twenty survivors. A planet never inhabited. No rescue.'
+                         : 'Vinte sobreviventes. Um planeta que nunca foi habitado. Nenhum resgate.');
+    set('#btnJogar', en ? 'PLAY' : 'JOGAR');
+    set('#btnSave', T('salvar'));  set('#btnMenu', T('menu'));
+    set('#btnAdvance', T('avancar1')); set('#btnAdvance5', T('avancar5'));
+
+    var rod = document.querySelector('.boot-foot');
+    if (rod) {
+      rod.innerHTML = (en ? 'Free, no install, no account. Saves in your browser.'
+                          : 'Grátis, sem instalar, sem cadastro. Salva no seu navegador.') +
+        ' <button id="btnSemente" class="linkzin">' + (en ? 'world seed' : 'semente do mundo') + '</button>' +
+        ' <button id="btnLang" class="linkzin">' + (en ? 'PT' : 'EN') + '</button>';
+      ligarRodape();
+    }
+    var bl = document.getElementById('btnLangJogo'); if (bl) bl.textContent = en ? 'PT' : 'EN';
+
     var abas = T('abas');
     document.querySelectorAll('#tabs button').forEach(function (b) {
       if (abas[b.dataset.tab]) b.textContent = abas[b.dataset.tab];
@@ -31,18 +31,43 @@
     [T('estoqueVital'), T('energia'), T('materiais'), T('maquinas')].forEach(function (v, i) {
       if (h3[i]) h3[i].textContent = v;
     });
-    document.querySelectorAll('.diffBtn').forEach(function (b) {
-      var m = { facil:['SOBREVIVENTE','SURVIVOR'], normal:['DIFÍCIL','HARD'],
-                extremo:['EXTREMO','EXTREME'], brutal:['BRUTAL','BRUTAL'] }[b.dataset.diff];
-      if (m) b.textContent = EL.LANG === 'en' ? m[1] : m[0];
+    document.querySelectorAll('.difOp').forEach(function (b) {
+      var m = { facil:['Sobrevivente','Survivor'], normal:['Difícil','Hard'],
+                extremo:['Extremo','Extreme'], brutal:['Brutal','Brutal'] }[b.dataset.diff];
+      if (m) b.textContent = en ? m[1] : m[0];
     });
-    if (EL.LANG === 'en') {
-      set('.md-tag', 'DAILY CHALLENGE');
-      set('.md-d', 'Everyone plays the same planet today. Tomorrow there is another.');
-      set('.boot-ou span', 'or build your own colony');
-      var ba = document.getElementById('btnArquivo');
-      ba.innerHTML = 'COLONY ARCHIVE <b id="arqCount"></b>';
+    if (en) {
+      var rot = ['Daily challenge', 'Scenarios', 'Archive'];
+      document.querySelectorAll('.boot-mais button').forEach(function (b, i) {
+        var num = b.querySelector('b');
+        b.textContent = rot[i] + ' ';
+        if (num) b.appendChild(num);
+      });
+      var bc = document.getElementById('btnLoadGame');
+      if (bc) bc.innerHTML = '↩ Continue colony <b id="contInfo"></b>';
     }
+  }
+
+  function ligarRodape() {
+    var bs = document.getElementById('btnSemente');
+    if (bs) bs.onclick = function () {
+      var b = document.getElementById('sementeBox');
+      b.classList.toggle('hidden');
+      if (!b.classList.contains('hidden')) document.getElementById('seedInput').focus();
+    };
+    var bl = document.getElementById('btnLang');
+    if (bl) bl.onclick = trocarIdiomaDialogo;
+  }
+
+  function trocarIdiomaDialogo() {
+    EL.UI.dialogo({
+      titulo: EL.LANG === 'en' ? 'CHANGE LANGUAGE' : 'TROCAR IDIOMA',
+      texto: EL.LANG === 'en' ? 'Switch the game to <b>Portuguese</b>? The page will reload.'
+                              : 'Mudar o jogo para <b>inglês</b>? A página será recarregada.',
+      nota: EL.LANG === 'en' ? 'Your saved colony is kept.' : 'Sua colônia salva é preservada.',
+      cancelar: EL.LANG === 'en' ? 'Cancel' : 'Cancelar',
+      ok: EL.LANG === 'en' ? 'Português' : 'English'
+    }, function (ok) { if (ok) EL.trocarIdioma(EL.LANG === 'en' ? 'pt' : 'en'); });
   }
 
   function iniciar(estado) {
@@ -58,68 +83,94 @@
   }
 
   var DIF_TXT = {
-    facil:   'Margens folgadas de água, comida e energia. Para a primeira colônia — você ainda vai perder gente, mas dá tempo de aprender.',
-    normal:  'Equilibrado e implacável. Um erro custa caro, mas a colônia consegue se recuperar dele.',
-    extremo: 'Nada é facilitado. Um erro de alocação no sol 5 costuma matar a colônia no sol 45, sem aviso.',
-    brutal:  'Produção reduzida, eventos mais frequentes, riscos maiores. Para quem já venceu no Extremo.'
+    facil:   'Margens folgadas. Você ainda vai perder gente — mas dá tempo de aprender.',
+    normal:  'Equilibrado e implacável. Um erro custa caro, mas a colônia se recupera dele.',
+    extremo: 'Nada é facilitado. Um erro no sol 5 costuma matar a colônia no sol 45, sem aviso.',
+    brutal:  'Produção menor, mais eventos, mais risco. Para quem já venceu no Extremo.'
   };
   function pintaDif() {
-    document.querySelectorAll('.diffBtn').forEach(function (x) { x.classList.toggle('sel', x.dataset.diff === dif); });
-    document.getElementById('bootDifTxt').textContent = (EL.t('dif') || {})[dif] || DIF_TXT[dif] || '';
+    document.querySelectorAll('.difOp').forEach(function (x) { x.classList.toggle('sel', x.dataset.diff === dif); });
+    var t = (EL.t('dif') || {})[dif] || DIF_TXT[dif] || '';
+    document.getElementById('bootDifTxt').textContent = t;
   }
-  document.querySelectorAll('.diffBtn').forEach(function (b) {
+  document.querySelectorAll('.difOp').forEach(function (b) {
     b.addEventListener('click', function () { dif = b.dataset.diff; pintaDif(); });
   });
-  dif = 'facil';
-  pintaDif();
-  pintaDiario();
-  aplicarTextoUI();
-  pintaDiario();
 
-  /* ---------- desafio diário ---------- */
-  function pintaDiario() {
+  /* ---------- ação primária: jogar ---------- */
+  function comecar() {
+    var campo = document.getElementById('seedInput');
+    var seed = (campo && campo.value.trim()) || ('ELYSIUM-' + Math.floor(Math.random() * 1e9).toString(36).toUpperCase());
+    iniciar(EL.novoJogo(seed, dif));
+  }
+
+  document.getElementById('btnJogar').addEventListener('click', function () {
+    if (!EL.temSave()) { comecar(); return; }
+    var s = EL.carregar();
+    EL.UI.dialogo({
+      titulo: 'JÁ EXISTE UMA COLÔNIA', perigo: true, icone: '⚠',
+      texto: 'Você tem uma colônia salva no <b>sol ' + (s ? s.sol : '?') + '</b>, com ' +
+             (s ? EL.Sim.vivos(s).length : '?') + ' sobreviventes.<br>Começar outra apaga esse progresso.',
+      nota: 'Para voltar a ela, cancele e use "Continuar colônia".',
+      cancelar: 'Voltar', ok: 'COMEÇAR OUTRA'
+    }, function (ok) { if (ok) comecar(); });
+  });
+
+  document.getElementById('btnLoadGame').addEventListener('click', function () {
+    var s = EL.carregar();
+    if (!s) { EL.UI.avisar('NENHUM SALVAMENTO', 'Não há colônia salva neste navegador.'); return; }
+    iniciar(s);
+  });
+
+  /* semente escondida: é ferramenta, não decisão de jogador */
+  document.getElementById('btnSemente').addEventListener('click', function () {
+    var b = document.getElementById('sementeBox');
+    b.classList.toggle('hidden');
+    if (!b.classList.contains('hidden')) document.getElementById('seedInput').focus();
+  });
+
+  function pintaContinuar() {
+    var b = document.getElementById('btnLoadGame'), s = EL.carregar();
+    if (!s) { b.classList.add('hidden'); return; }
+    b.classList.remove('hidden');
+    document.getElementById('contInfo').textContent =
+      '· sol ' + s.sol + ' · ' + EL.Sim.vivos(s).length + ' vivos';
+  }
+
+  /* ---------- modos secundários: diário, cenários, arquivo ---------- */
+  function pintaSecundarios() {
+    var en = EL.LANG === 'en';
     var dia = EL.Diario.numeroDoDia();
     document.getElementById('diarioNum').textContent = '#' + dia;
-    var r = EL.Diario.resultadoDoDia(dia);
-    var emAndamento = EL.Diario.carregar();
-    var el = document.getElementById('diarioEstado');
-    var seq = EL.Diario.sequencia();
-    var en = EL.LANG === 'en';
-    if (r) {
-      el.textContent = (en ? 'You already played today: ' : 'Você já jogou hoje: ') + r.sol + ' sols' +
-        (seq > 1 ? (en ? ' · ' + seq + '-day streak' : ' · sequência de ' + seq + ' dias') : '') +
-        (en ? ' — click to review' : ' — clique para rever');
-    } else if (emAndamento) {
-      el.textContent = en
-        ? 'Today\'s run in progress — sol ' + emAndamento.sol + ' · click to continue'
-        : 'Partida de hoje em andamento — sol ' + emAndamento.sol + ' · clique para continuar';
-    } else {
-      el.textContent = seq > 0
-        ? (en ? 'Streak of ' + seq + ' days — do not miss today' : 'Sequência de ' + seq + ' dias — não perca hoje')
-        : (en ? 'Not played yet today' : 'Ainda não jogado hoje');
-    }
-    var el2 = document.getElementById('arqCount');
-    if (el2) el2.textContent = EL.Arquivo.quantos() + '/' + EL.Arquivo.total();
-    var el3 = document.getElementById('cenCount');
-    if (el3) {
-      var cq = EL.Conquistas.ler(), venc = ['c_cen_inverno','c_cen_sozinho','c_cen_tanque','c_cen_tabula',
-        'c_cen_anom','c_cen_enxame','c_cen_geracao'].filter(function (k) { return cq[k]; }).length;
-      el3.textContent = venc + '/7';
-    }
+
+    var cq = EL.Conquistas.ler();
+    var venc = ['c_cen_inverno','c_cen_sozinho','c_cen_tanque','c_cen_tabula',
+                'c_cen_anom','c_cen_enxame','c_cen_geracao'].filter(function (k) { return cq[k]; }).length;
+    document.getElementById('cenCount').textContent = venc + '/7';
+    document.getElementById('arqCount').textContent = EL.Arquivo.quantos() + '/' + EL.Arquivo.total();
+
+    var r = EL.Diario.resultadoDoDia(dia), emAndamento = EL.Diario.carregar();
+    var seq = EL.Diario.sequencia(), el = document.getElementById('diarioEstado');
+    if (r) el.textContent = (en ? 'Daily #' + dia + ' done: ' : 'Desafio #' + dia + ' feito: ') + r.sol + ' sols' +
+      (seq > 1 ? (en ? ' · ' + seq + '-day streak' : ' · sequência de ' + seq + ' dias') : '');
+    else if (emAndamento) el.textContent = en ? 'Daily run in progress — sol ' + emAndamento.sol
+                                              : 'Desafio de hoje em andamento — sol ' + emAndamento.sol;
+    else if (seq > 0) el.textContent = en ? 'Streak of ' + seq + ' days — do not miss today'
+                                          : 'Sequência de ' + seq + ' dias — não perca hoje';
+    else el.textContent = '';
   }
 
   function iniciarDiario() {
     var dia = EL.Diario.numeroDoDia();
-    var jaFeito = EL.Diario.resultadoDoDia(dia);
     var emAndamento = EL.Diario.carregar();
     if (emAndamento) { iniciar(emAndamento); return; }
+    var jaFeito = EL.Diario.resultadoDoDia(dia);
     if (jaFeito) {
       EL.UI.dialogo({
-        titulo: 'DESAFIO #' + dia + ' JÁ JOGADO',
-        icone: '📅',
+        titulo: 'DESAFIO #' + dia + ' JÁ JOGADO', icone: '📅',
         texto: 'Você sobreviveu <b>' + jaFeito.sol + ' sols</b> no planeta de hoje.<br>' +
-               'O resultado registrado é sempre o da primeira tentativa — jogar de novo não muda o placar.',
-        nota: 'Um planeta novo aparece todo dia. Você também pode montar uma colônia própria abaixo.',
+               'O placar guarda sempre a primeira tentativa.',
+        nota: 'Um planeta novo aparece todo dia.',
         cancelar: 'Voltar', ok: 'Jogar assim mesmo'
       }, function (ok) { if (ok) { EL.Diario.limpar(); iniciar(EL.Diario.novaPartida()); } });
       return;
@@ -128,8 +179,8 @@
   }
 
   document.getElementById('btnDiario').addEventListener('click', iniciarDiario);
-  document.getElementById('btnArquivo').addEventListener('click', function () { EL.UI.abrirArquivo(); });
   document.getElementById('btnCenarios').addEventListener('click', function () { EL.UI.abrirCenarios(); });
+  document.getElementById('btnArquivo').addEventListener('click', function () { EL.UI.abrirArquivo(); });
 
   window.EL_iniciarCenario = function (id) {
     var c = EL.cenarioPorId(id); if (!c) return;
@@ -146,37 +197,13 @@
     }, function (ok) { if (ok) vai(); });
   };
 
-  function comecar() {
-    var seed = document.getElementById('seedInput').value.trim() || 'ELYSIUM-1';
-    iniciar(EL.novoJogo(seed, dif));
-  }
-
-  document.getElementById('btnNewGame').addEventListener('click', function () {
-    if (!EL.temSave()) { comecar(); return; }
-    var s = EL.carregar();
-    var onde = s ? ('sol <b>' + s.sol + '</b>, ' + EL.Sim.vivos(s).length + ' sobreviventes') : 'em andamento';
-    EL.UI.dialogo({
-      titulo: 'COLÔNIA EXISTENTE',
-      perigo: true, icone: '⚠',
-      texto: 'Há uma colônia salva neste navegador — ' + onde + '.<br>' +
-             'Iniciar uma nova <b>apaga esse progresso permanentemente</b>.',
-      nota: 'Para preservá-la, cancele, escolha CONTINUAR e use Menu → Exportar salvamento.',
-      cancelar: 'Voltar', ok: 'APAGAR E COMEÇAR'
-    }, function (ok) { if (ok) comecar(); });
-  });
-
-  document.getElementById('btnLoadGame').addEventListener('click', function () {
-    var s = EL.carregar();
-    if (!s) {
-      EL.UI.avisar('NENHUM SALVAMENTO',
-        'Não há colônia salva neste navegador.',
-        'Se você tem um arquivo .json exportado, inicie uma colônia e use Menu → Importar.');
-      return;
-    }
-    iniciar(s);
-  });
-
-  if (!EL.temSave()) document.getElementById('btnLoadGame').disabled = true;
+  /* ---------- estado inicial da tela ---------- */
+  dif = 'facil';
+  aplicarTextoUI();
+  pintaDif();
+  pintaContinuar();
+  pintaSecundarios();
+  ligarRodape();
 
   /* ---- barra inferior ---- */
   document.getElementById('btnAdvance').addEventListener('click', function () {
@@ -276,17 +303,8 @@
     if (e.target.closest('.row')) fechaGaveta();
   });
 
-  document.getElementById('btnLang').addEventListener('click', function () {
-    EL.UI.dialogo({
-      titulo: EL.LANG === 'en' ? 'CHANGE LANGUAGE' : 'TROCAR IDIOMA',
-      texto: EL.LANG === 'en'
-        ? 'Switch the game to <b>Portuguese</b>? The page will reload.'
-        : 'Mudar o jogo para <b>inglês</b>? A página será recarregada.',
-      nota: EL.LANG === 'en' ? 'Your saved colony is kept.' : 'Sua colônia salva é preservada.',
-      cancelar: EL.LANG === 'en' ? 'Cancel' : 'Cancelar',
-      ok: EL.LANG === 'en' ? 'Português' : 'English'
-    }, function (ok) { if (ok) EL.trocarIdioma(EL.LANG === 'en' ? 'pt' : 'en'); });
-  });
+  var _bj = document.getElementById('btnLangJogo');
+  if (_bj) _bj.addEventListener('click', trocarIdiomaDialogo);
 
   EL.UI.bind();
 })();

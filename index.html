@@ -10,38 +10,40 @@
 
 <div id="boot" class="boot">
   <div class="boot-box">
+
     <h1>PROJECT<span>ELYSIUM</span></h1>
-    <p class="boot-sub">Simulador de colonização planetária</p>
-    <div class="boot-desc">
-      <p>A <strong>NAV Perseverança</strong> caiu no planeta EL-7742. Vinte sobreviventes.
-      Quarenta sols de comida. Trinta e um de água. Nenhum resgate — nunca.</p>
-      <p>Você comanda. Cada sol é um turno. Cada decisão altera o futuro.</p>
-    </div>
-    <button id="btnDiario" class="modo-diario">
-      <span class="md-topo"><span class="md-tag">DESAFIO DIÁRIO</span><span class="md-n" id="diarioNum">#—</span></span>
-      <span class="md-d">Todo mundo joga o mesmo planeta hoje. Amanhã tem outro.</span>
-      <span class="md-st" id="diarioEstado"></span>
-    </button>
+    <p class="boot-sub" id="bootPitch">Vinte sobreviventes. Um planeta que nunca foi habitado. Nenhum resgate.</p>
 
-    <div class="boot-ou"><span>ou monte sua própria colônia</span></div>
+    <button id="btnJogar" class="jogar">JOGAR</button>
 
-    <label class="boot-seed">Semente do mundo
-      <input id="seedInput" type="text" value="ELYSIUM-1" maxlength="24">
-    </label>
-    <div class="boot-diff">
-      <button class="diffBtn sel" data-diff="facil">SOBREVIVENTE</button>
-      <button class="diffBtn" data-diff="normal">DIFÍCIL</button>
-      <button class="diffBtn" data-diff="extremo">EXTREMO</button>
-      <button class="diffBtn" data-diff="brutal">BRUTAL</button>
+    <div class="dif-linha" id="difLinha">
+      <button class="difOp sel" data-diff="facil">Sobrevivente</button>
+      <button class="difOp" data-diff="normal">Difícil</button>
+      <button class="difOp" data-diff="extremo">Extremo</button>
+      <button class="difOp" data-diff="brutal">Brutal</button>
     </div>
-    <div class="boot-actions">
-      <button id="btnNewGame" class="big">INICIAR COLÔNIA</button>
-      <button id="btnLoadGame" class="big ghost">CONTINUAR</button>
+    <p class="dif-txt" id="bootDifTxt"></p>
+
+    <button id="btnLoadGame" class="continuar hidden">↩ Continuar colônia <b id="contInfo"></b></button>
+
+    <div class="boot-mais">
+      <button id="btnDiario">Desafio diário <b id="diarioNum"></b></button>
+      <span>·</span>
+      <button id="btnCenarios">Cenários <b id="cenCount"></b></button>
+      <span>·</span>
+      <button id="btnArquivo">Arquivo <b id="arqCount"></b></button>
     </div>
-    <p class="boot-dif" id="bootDifTxt"></p>
-    <button id="btnCenarios" class="boot-cenarios">CENÁRIOS <b id="cenCount"></b></button>
-    <button id="btnArquivo" class="boot-arquivo">ARQUIVO DA COLÔNIA <b id="arqCount"></b></button>
-    <p class="boot-foot">Salvamento automático no navegador. Nenhum dado sai do seu computador.</p>
+    <p class="boot-mais-st" id="diarioEstado"></p>
+
+    <p class="boot-foot">
+      Grátis, sem instalar, sem cadastro. Salva no seu navegador.
+      <button id="btnSemente" class="linkzin">semente do mundo</button>
+      <button id="btnLang" class="linkzin">EN</button>
+    </p>
+    <div id="sementeBox" class="semente-box hidden">
+      <input id="seedInput" type="text" value="" maxlength="24" placeholder="deixe vazio para um mundo aleatório">
+    </div>
+
   </div>
 </div>
 
@@ -56,7 +58,7 @@
     <div class="tb-weather" id="hdWeather">—</div>
     <div class="tb-stats" id="hdStats"></div>
     <div class="tb-right">
-      <button id="btnLang" class="mini" title="Language">EN</button>
+      <button id="btnLangJogo" class="mini" title="Language">EN</button>
       <button id="btnSide" class="mini only-mob" aria-label="Recursos">☰</button>
       <button id="btnSave" class="mini">Salvar</button>
       <button id="btnMenu" class="mini">Menu</button>

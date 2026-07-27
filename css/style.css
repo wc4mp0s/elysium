@@ -17,29 +17,46 @@ body{
 button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;background:none;color:inherit}
 .hidden{display:none !important}
 
-/* ---------- BOOT ---------- */
-.boot{position:fixed;inset:0;background:radial-gradient(ellipse at 50% 30%,#16202c,#05080b 70%);
-  display:flex;align-items:center;justify-content:center;z-index:200;overflow:auto;padding:20px}
-.boot-box{max-width:620px;width:100%;text-align:center}
-.boot-box h1{font-size:38px;letter-spacing:8px;font-weight:400;color:var(--amber)}
-.boot-box h1 span{display:block;font-size:52px;letter-spacing:14px;color:var(--txt);font-weight:700}
-.boot-sub{color:var(--dim);margin:12px 0 26px;letter-spacing:2px;font-size:11px}
-.boot-desc{text-align:left;background:#0e141ccc;border:1px solid var(--line);padding:16px 18px;
-  border-left:3px solid var(--amber);margin-bottom:22px}
-.boot-desc p{margin-bottom:8px;color:var(--dim)}
-.boot-desc strong{color:var(--txt)}
-.boot-seed{display:block;color:var(--dim);font-size:11px;letter-spacing:1px;margin-bottom:16px}
-.boot-seed input{display:block;width:100%;margin-top:6px;background:#0a0f15;border:1px solid var(--line2);
-  color:var(--cyan);padding:9px 11px;font-family:var(--mono);font-size:13px;letter-spacing:2px;text-align:center}
-.boot-diff{display:flex;gap:8px;margin-bottom:20px}
-.diffBtn{flex:1;padding:10px;border:1px solid var(--line2);color:var(--dim);font-size:11px;letter-spacing:1px}
-.diffBtn.sel{border-color:var(--amber);color:var(--amber);background:#e8a33d14}
-.boot-actions{display:flex;gap:10px}
-button.big{flex:1;padding:14px;background:var(--amber);color:#0a0e13;font-weight:700;letter-spacing:2px}
-button.big:hover{background:var(--amber2)}
-button.big.ghost{background:none;border:1px solid var(--line2);color:var(--dim)}
-button.big.ghost:hover{border-color:var(--txt);color:var(--txt)}
-.boot-foot{margin-top:18px;color:var(--dim2);font-size:10px}
+/* ---------- BOOT ----------
+   Uma ação primária. Tudo o mais é secundário e se descobre depois. */
+.boot{position:fixed;inset:0;background:radial-gradient(ellipse at 50% 22%,#16202c,#05080b 72%);
+  display:flex;align-items:center;justify-content:center;z-index:200;overflow:auto;padding:24px}
+.boot-box{max-width:440px;width:100%;text-align:center}
+.boot-box h1{font-size:30px;letter-spacing:8px;font-weight:400;color:var(--amber);line-height:1.1}
+.boot-box h1 span{display:block;font-size:46px;letter-spacing:14px;color:var(--txt);font-weight:700}
+.boot-sub{color:var(--dim);margin:16px auto 30px;font-size:12px;line-height:1.7;max-width:330px}
+
+button.jogar{width:100%;padding:20px;background:var(--amber);color:#0a0e13;
+  font-weight:700;letter-spacing:6px;font-size:16px;transition:background .12s,transform .08s}
+button.jogar:hover{background:var(--amber2);transform:translateY(-1px)}
+button.jogar:active{transform:translateY(0)}
+
+.dif-linha{display:flex;gap:1px;margin-top:12px;background:var(--line)}
+.difOp{flex:1;padding:8px 4px;background:var(--bg2);color:var(--dim2);font-size:10.5px;letter-spacing:.5px}
+.difOp:hover{color:var(--txt)}
+.difOp.sel{background:#e8a33d1f;color:var(--amber)}
+.dif-txt{color:var(--dim2);font-size:10.5px;line-height:1.6;margin:10px 4px 0;min-height:34px}
+
+button.continuar{width:100%;margin-top:14px;padding:11px;border:1px solid var(--line2);
+  color:var(--dim);font-size:11.5px;letter-spacing:1px}
+button.continuar:hover{border-color:var(--cyan);color:var(--cyan)}
+button.continuar b{color:var(--txt);font-weight:400}
+
+.boot-mais{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:26px;
+  color:var(--line2);font-size:10px}
+.boot-mais button{color:var(--dim2);font-size:11px;letter-spacing:.5px;padding:4px 2px}
+.boot-mais button:hover{color:var(--cyan)}
+.boot-mais button b{color:var(--dim);font-weight:400;font-size:10px}
+.boot-mais-st{color:var(--amber);font-size:10.5px;margin-top:7px;min-height:14px}
+.boot-mais-st:empty{min-height:0}
+
+.boot-foot{margin-top:30px;color:var(--dim2);font-size:10px;line-height:1.9}
+button.linkzin{color:var(--line2);font-size:10px;text-decoration:underline;
+  text-underline-offset:3px;margin-left:9px}
+button.linkzin:hover{color:var(--dim)}
+.semente-box{margin-top:10px}
+.semente-box input{width:100%;background:#0a0f15;border:1px solid var(--line2);color:var(--cyan);
+  padding:8px 11px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-align:center}
 
 /* ---------- APP ---------- */
 .app{display:flex;flex-direction:column;height:100vh}
@@ -198,22 +215,19 @@ table.map th{font-size:10px;color:var(--dim2)}
 .modal-box .choices button i{display:block;color:var(--dim2);font-style:normal;font-size:10.5px;margin-top:3px}
 
 /* ---------- DESAFIO DIÁRIO (tela inicial) ---------- */
-.modo-diario{display:block;width:100%;text-align:left;padding:14px 16px;margin-bottom:16px;
-  border:1px solid var(--cyan);background:linear-gradient(135deg,#132b2acc,#101a24cc);
-  transition:border-color .15s,transform .1s}
+
 .modo-diario:hover{border-color:#7fe6dc;transform:translateY(-1px)}
-.md-topo{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}
-.md-tag{font-size:10.5px;letter-spacing:3px;color:var(--cyan);font-weight:700}
-.md-n{font-size:15px;color:var(--txt);font-weight:700}
-.md-d{display:block;font-size:11px;color:var(--dim);line-height:1.5}
-.md-st{display:block;font-size:10.5px;color:var(--amber);margin-top:6px}
-.md-st:empty{display:none}
-.boot-ou{display:flex;align-items:center;gap:10px;margin:0 0 14px;color:var(--dim2);font-size:10px}
-.boot-ou:before,.boot-ou:after{content:"";flex:1;height:1px;background:var(--line)}
-.boot-arquivo{width:100%;margin-top:10px;padding:9px;border:1px solid var(--line2);
-  color:var(--dim);font-size:10.5px;letter-spacing:2px}
-.boot-arquivo:hover{border-color:var(--purple);color:var(--purple)}
-.boot-arquivo b{color:var(--txt)}
+
+
+
+
+
+
+
+
+
+
+
 
 /* ---------- CARTÃO DE COMPARTILHAMENTO ---------- */
 .selos{font-size:24px;letter-spacing:5px;text-align:center;margin:14px 0 6px;line-height:1.4}
@@ -261,9 +275,9 @@ table.map th{font-size:10px;color:var(--dim2)}
 .tut-bar{height:2px;background:#0a0f15;margin-top:9px}
 .tut-bar i{display:block;height:100%;background:var(--cyan);transition:width .3s}
 
-.boot-dif{color:var(--dim2);font-size:10.5px;margin-bottom:14px;min-height:14px;line-height:1.5}
-.boot-diff{flex-wrap:wrap}
-.boot-diff .diffBtn{flex:1 1 40%}
+
+
+
 
 /* ---------- TELA DE FIM ---------- */
 .fimwrap{position:fixed;inset:0;z-index:220;background:radial-gradient(ellipse at 50% 0%,#1a1013,#04070a 70%);
@@ -417,10 +431,9 @@ h4.fim-h{font-size:10px;letter-spacing:3px;color:var(--dim2);margin:18px 0 8px;f
 }
 
 /* ---------- CENÁRIOS ---------- */
-.boot-cenarios{width:100%;margin-top:10px;padding:9px;border:1px solid var(--line2);
-  color:var(--dim);font-size:10.5px;letter-spacing:2px}
-.boot-cenarios:hover{border-color:var(--cyan);color:var(--cyan)}
-.boot-cenarios b{color:var(--txt)}
+
+
+
 .cen{max-width:760px;width:100%}
 .cen h2{text-align:center;font-size:15px;letter-spacing:5px;color:var(--cyan);font-weight:400;margin-bottom:6px}
 .cen-sub{text-align:center;color:var(--dim);font-size:11.5px;margin-bottom:20px;line-height:1.6}

@@ -35,39 +35,33 @@ if [ "$faltando" -ne 0 ]; then
   exit 1
 fi
 
-# ---------- 3. commit e envio ----------
+# ---------- 3. marcador de versão, commit e envio ----------
+# Conferir só o HTTP 200 não basta: o site antigo também responde 200 enquanto o
+# Pages reconstrói. Gravamos um marcador ANTES do commit e esperamos ele aparecer.
+# (nome sem ponto na frente: o GitHub Pages não serve arquivos ocultos)
+MARCA="$(date +%s)"
+echo "$MARCA" > versao.txt
+
 git add -A
-git commit -q -m "$MSG" || { echo "Nada para commitar."; }
+git commit -q -m "$MSG" || echo "Nada para commitar."
 echo "→ Enviando para o GitHub..."
 if ! git push -q 2>&1 | sed -E 's/gh[ps]_[A-Za-z0-9]+/[TOKEN OCULTO]/g'; then
   echo "ERRO no push. O site continua na versão anterior."
   exit 1
 fi
 
-# ---------- 4. esperar o Pages republicar A VERSÃO NOVA ----------
-# Conferir só o HTTP 200 não basta: o site antigo também responde 200 enquanto
-# o Pages reconstrói. Usamos o hash do commit como marcador do que está no ar.
-SHA=$(git rev-parse HEAD)
-echo "$SHA" > .versao
-git add .versao && git commit -q --amend --no-edit && git push -q --force-with-lease 2>&1 | \
-  sed -E 's/gh[ps]_[A-Za-z0-9]+/[TOKEN OCULTO]/g'
-SHA=$(git rev-parse HEAD)
-echo "$SHA" > .versao
-git add .versao && git commit -q --amend --no-edit 2>/dev/null
-git push -q --force-with-lease 2>&1 | sed -E 's/gh[ps]_[A-Za-z0-9]+/[TOKEN OCULTO]/g'
-
+# ---------- 4. esperar o Pages publicar ESTA versão ----------
 echo "→ Aguardando o GitHub Pages publicar esta versão..."
 ok=0
-alvo=$(git rev-parse HEAD)
 for i in 1 2 3 4 5 6 7 8 9 10; do
-  viva=$(curl -s "$SITE/.versao?v=$RANDOM" | tr -d '[:space:]')
-  if [ "$viva" = "$alvo" ]; then ok=1; break; fi
-  printf '   tentativa %s (no ar: %s)\n' "$i" "${viva:0:7}"
+  viva=$(curl -s "$SITE/versao.txt?v=$RANDOM" | tr -d '[:space:]')
+  if [ "$viva" = "$MARCA" ]; then ok=1; break; fi
+  printf '   tentativa %s (no ar: %s · esperando: %s)\n' "$i" "${viva:0:12}" "$MARCA"
   perl -e 'select(undef,undef,undef,20)'
 done
 
 if [ "$ok" -ne 1 ]; then
-  echo "AVISO: a versão nova ainda não apareceu no ar. O push foi feito; o Pages pode demorar mais um pouco."
+  echo "AVISO: a versão nova ainda não apareceu no ar. O push foi feito; o Pages pode demorar mais."
   exit 1
 fi
 

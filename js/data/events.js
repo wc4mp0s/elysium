@@ -269,7 +269,7 @@ EL.EVENTOS = [
    if(a.rng.chance(chance)){ var alvo=a.rng.pick(v);
      var sev=a.rng.int(25,70);
      if(sev>62&&a.rng.chance(0.35)){ a.matar(alvo.id,'Morto por Ceifeiros'); a.moralAll(-22); }
-     else { a.ferir(alvo.id,'Lacerações profundas',sev,a.rng.int(6,16)); a.moralAll(-9); a.log(alvo.nome+' foi alcançado antes de Deng abrir fogo.','bad'); }
+     else { a.ferir(alvo.id,'Lacerações profundas',sev,a.rng.int(6,16)); a.moralAll(-9); a.log(alvo.nome+(alvo.sexo==='F'?' foi alcançada':' foi alcançado')+' antes de Deng abrir fogo.','bad'); }
    } else { a.log('A cerca e a guarda seguraram. Dois Ceifeiros abatidos.','good'); a.mat('fibra',a.rng.int(10,25)); a.moralAll(+2); } }},
 
 {id:'enxame_ev', n:'Enxame-mandíbula', cat:'fauna', cd:70,
@@ -326,7 +326,7 @@ EL.EVENTOS = [
  txt:'Começa com dois. Ao meio-dia são sete. A água do Ferrun cobrou o preço.',
  efe:function(a){ var v=_vivos(a.st); a.rng.shuffle(v); var n=Math.min(v.length, a.rng.int(2,Math.max(2,Math.min(9,v.length))));
    for(var i=0;i<n;i++){ v[i].saude-=a.rng.int(12,30); v[i].fadiga+=18; v[i].doente=a.st.sol+a.rng.int(3,7); }
-   a.log(n+' pessoas de cama. Nakamura tem 6 doses de antibiótico para o planeta inteiro.','bad'); a.moralAll(-8); }},
+   a.log((n===1?'1 pessoa de cama':n+' pessoas de cama')+'. Nakamura tem 6 doses de antibiótico para o planeta inteiro.','bad'); a.moralAll(-8); }},
 
 {id:'infeccao', n:'Infecção se agrava', cat:'saude', cd:10,
  peso:function(st){ var f=0; _vivos(st).forEach(function(c){ if(c.ferimento&&c.ferimento.sev>30) f++; }); return f*18; },
@@ -667,7 +667,7 @@ EL.EVENTOS = [
    if(!cand.length) return;
    var c=a.rng.pick(cand); var sev=a.rng.int(15,55);
    a.ferir(c.id,'Trauma por esmagamento',sev,a.rng.int(4,14)); a.moralAll(-4);
-   a.log(c.nome+' foi atingido. '+(c.tracos.indexOf('imprudente')>=0?'Estava trabalhando sem apoio, de novo.':'Azar puro.'),'bad'); }},
+   a.log(c.nome+(c.sexo==='F'?' foi atingida. ':' foi atingido. ')+(c.tracos.indexOf('imprudente')>=0?'Estava trabalhando sem apoio, de novo.':'Azar puro.'),'bad'); }},
 
 {id:'gelido_aviso', n:'O Gélido se aproxima', cat:'crise', cd:400,
  peso:function(st){ return (st.clima.solAno>280&&st.clima.solAno<292)?100:0; },

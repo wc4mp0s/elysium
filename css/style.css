@@ -458,3 +458,26 @@ h4.fim-h{font-size:10px;letter-spacing:3px;color:var(--dim2);margin:18px 0 8px;f
 .conq.lock b{color:var(--dim2)}
 .conq span{display:block;font-size:10.5px;color:var(--dim);margin-top:2px}
 .conq i{display:block;font-size:9.5px;color:var(--dim2);font-style:normal;margin-top:3px}
+
+/* ---------- CRÔNICA DO SOL ----------
+   A história emergente que o motor já gerava, agora como primeira coisa que se lê. */
+.cron{background:linear-gradient(180deg,#141d28,#111823);border:1px solid var(--line2);
+  border-left:3px solid var(--amber);padding:13px 16px;margin-bottom:16px}
+.cron-h{display:flex;align-items:baseline;gap:10px;margin-bottom:7px}
+.cron-sol{font-size:11px;letter-spacing:3px;color:var(--amber);font-weight:700}
+.cron-est{font-size:10px;letter-spacing:1px;color:var(--dim2)}
+.cron-ceu{font-size:12.5px;color:var(--txt);line-height:1.6;margin-bottom:10px;font-style:italic}
+.cron-ac{margin-bottom:10px}
+.ca{font-size:11.5px;color:var(--dim);line-height:1.65;padding:3px 0 3px 12px;
+  border-left:2px solid var(--line);margin-bottom:2px}
+.ca.evt{border-left-color:var(--purple);color:var(--txt)}
+.ca.bad{border-left-color:var(--red);color:#ffb3b3}
+.ca.good{border-left-color:var(--green);color:#a9e2c0}
+.ca.warn{border-left-color:var(--amber);color:var(--amber2)}
+.cron-p{border-top:1px solid var(--line);padding-top:9px;margin-bottom:9px}
+.cron-p div{font-size:11.5px;color:var(--dim);line-height:1.7;padding:1px 0}
+.cron-t{display:flex;flex-wrap:wrap;gap:6px}
+.tn{font-size:10.5px;padding:3px 9px;border:1px solid}
+.tn.crit{border-color:#e05c5c66;color:#ff9d9d;background:#e05c5c12}
+.tn.warn{border-color:#e8a33d55;color:var(--amber2);background:#e8a33d10}
+@media (max-width:900px){ .cron{padding:11px 12px} }

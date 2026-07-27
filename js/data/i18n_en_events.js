@@ -338,6 +338,8 @@ EL.EN.logRe = (EL.EN.logRe || []).concat([
 ]);
 
 EL.EN.logRe.push(
+ [/^(\d+) pessoas? de cama\. Nakamura tem 6 doses de antibiótico para o planeta inteiro\.$/,
+  function (m) { return m[1] + (m[1] === '1' ? ' person is' : ' people are') + ' bedridden. Nakamura has 6 doses of antibiotic for an entire planet.'; }],
  [/^☠☠ FIM\. Todos morreram no sol (\d+)\.$/, function (m) { return '☠☠ THE END. Everyone died on sol ' + m[1] + '.'; }],
  [/^★★ VITÓRIA: terraformação iniciada com (\d+) habitantes\.$/, function (m) { return '★★ VICTORY: terraforming begun with ' + m[1] + ' inhabitants.'; }]
 );
@@ -377,3 +379,9 @@ EL.EN.logRe.push(
   };
   for (var k in m) L[k] = m[k];
 })(EL.EN.log);
+
+EL.EN.logRe.push(
+ [/^(.+?) foi atingid[oa]\. Azar puro\.$/, function (m) { return m[1] + ' was hit. Pure bad luck.'; }],
+ [/^(.+?) foi atingid[oa]\. Estava trabalhando sem apoio, de novo\.$/, function (m) { return m[1] + ' was hit. Working without support again.'; }],
+ [/^(.+?) foi alcançad[oa] antes de Deng abrir fogo\.$/, function (m) { return m[1] + ' was caught before Deng opened fire.'; }]
+);

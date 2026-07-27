@@ -177,6 +177,7 @@ EL.UI = (function () {
       h += '<div class="' + (st.fimDeJogo.tipo === 'vitoria' ? 'okbox' : 'warnbox') + '"><b>' +
         (st.fimDeJogo.tipo === 'vitoria' ? '★ VITÓRIA' : '☠ FIM DA COLÔNIA') + '</b><br>' + esc(st.fimDeJogo.txt) + '</div>';
     }
+    h += EL.Cronica.html(st, R);
     h += '<h2 class="sec">SITUAÇÃO — SOL ' + st.sol + '</h2>';
     h += '<div class="grid g2">';
 

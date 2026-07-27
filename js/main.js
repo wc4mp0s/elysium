@@ -206,11 +206,17 @@
   ligarRodape();
 
   /* ---- barra inferior ---- */
+  function irParaVisao() {
+    var b = document.querySelector('#tabs button[data-tab="visao"]');
+    if (b && !b.classList.contains('sel')) b.click();
+    document.getElementById('tabbody').scrollTop = 0;
+  }
+
   document.getElementById('btnAdvance').addEventListener('click', function () {
     var err = EL.Sim.avancar(st);
-    if (err) EL.UI.toast(err);
+    if (err) { EL.UI.toast(err); return; }
     EL.UI.render(); EL.salvar(st);
-    document.getElementById('tabbody').scrollTop = 0;
+    irParaVisao();
   });
 
   document.getElementById('btnAdvance5').addEventListener('click', function () {
@@ -219,7 +225,7 @@
       EL.Sim.avancar(st);
     }
     EL.UI.render(); EL.salvar(st);
-    document.getElementById('tabbody').scrollTop = 0;
+    irParaVisao();
   });
 
   document.getElementById('btnSave').addEventListener('click', function () {

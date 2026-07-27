@@ -481,3 +481,37 @@ h4.fim-h{font-size:10px;letter-spacing:3px;color:var(--dim2);margin:18px 0 8px;f
 .tn.crit{border-color:#e05c5c66;color:#ff9d9d;background:#e05c5c12}
 .tn.warn{border-color:#e8a33d55;color:var(--amber2);background:#e8a33d10}
 @media (max-width:900px){ .cron{padding:11px 12px} }
+
+/* ---------- DEMANDA DA COLÔNIA ---------- */
+.dem{background:linear-gradient(180deg,#1b2233,#141a26);border:1px solid var(--purple);
+  border-left:3px solid var(--purple);padding:13px 16px;margin-bottom:14px}
+.dem.urgente{border-color:var(--amber);border-left-color:var(--amber)}
+.dem-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.dem-tag{font-size:9.5px;letter-spacing:2.5px;color:var(--purple)}
+.dem.urgente .dem-tag{color:var(--amber)}
+.dem-prazo{font-size:10.5px;color:var(--dim2)}
+.dem.urgente .dem-prazo{color:var(--amber2)}
+.dem h5{font-size:13px;color:var(--txt);font-weight:600;margin-bottom:6px}
+.dem p{font-size:11.5px;color:var(--dim);line-height:1.7;margin-bottom:8px}
+.dem-custo{font-size:11px;color:var(--amber2);margin-bottom:10px}
+.dem-acts{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ---------- EXPEDIÇÃO ---------- */
+.exp{background:var(--panel);border:1px solid var(--line);padding:12px 14px;margin-bottom:14px}
+.exp.em-campo{border-left:3px solid var(--cyan)}
+.exp-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;font-size:12px}
+.exp-h b{color:var(--txt)}
+.exp-h span{color:var(--dim2);font-size:10.5px}
+.exp p{font-size:11.5px;color:var(--dim);line-height:1.6;margin:6px 0 8px}
+.exp label.sub{display:block;margin-bottom:10px;color:var(--dim)}
+.exp select{width:100%;margin-top:4px;padding:7px}
+.exp-eq{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+.eqb{padding:6px 9px;border:1px solid var(--line2);color:var(--dim);font-size:10.5px;text-align:left;line-height:1.3}
+.eqb:hover{border-color:var(--cyan);color:var(--txt)}
+.eqb.on{border-color:var(--cyan);background:#4fd1c518;color:var(--cyan)}
+.eqb i{display:block;font-size:9px;color:var(--dim2);font-style:normal}
+.eqb.on i{color:var(--cyan)}
+.exp-info{display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--dim);margin-bottom:8px}
+.exp-info b{color:var(--txt)}
+.exp-info b.good{color:var(--green)} .exp-info b.warn{color:var(--amber)} .exp-info b.bad{color:var(--red)}
+.exp-prev{font-size:11px;color:var(--cyan);margin-bottom:10px}

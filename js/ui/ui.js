@@ -3,6 +3,7 @@ var EL = window.EL || {}; window.EL = EL;
 
 EL.UI = (function () {
   var st = null, tab = 'visao', mapSel = EL.BASE_SETOR;
+  var expSel = null, expEquipe = {};
 
   function $(s) { return document.querySelector(s); }
   function fmt(n, d) { if (n === undefined || n === null || isNaN(n)) return '—'; d = d === undefined ? 0 : d; return Number(n).toFixed(d).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
@@ -177,6 +178,24 @@ EL.UI = (function () {
       h += '<div class="' + (st.fimDeJogo.tipo === 'vitoria' ? 'okbox' : 'warnbox') + '"><b>' +
         (st.fimDeJogo.tipo === 'vitoria' ? '★ VITÓRIA' : '☠ FIM DA COLÔNIA') + '</b><br>' + esc(st.fimDeJogo.txt) + '</div>';
     }
+    /* demanda de pé: decisão que fica esperando, com prazo correndo */
+    var dm = EL.Demandas.ativa(st);
+    if (dm) {
+      var restam = st.demandas.ativa.prazo - st.sol;
+      var pode = dm.pode(st);
+      h += '<div class="dem' + (restam <= 4 ? ' urgente' : '') + '">';
+      h += '<div class="dem-h"><span class="dem-tag">PEDIDO DA COLÔNIA</span>' +
+           '<span class="dem-prazo">' + (restam <= 0 ? 'último sol' : 'faltam ' + restam + ' sols') + '</span></div>';
+      h += '<h5>' + esc(dm.t) + '</h5>';
+      h += '<p>' + esc(dm.d) + '</p>';
+      h += '<div class="dem-custo">Custo: ' + esc(dm.custo) + '</div>';
+      h += '<div class="dem-acts">';
+      h += pode ? '<button class="act on" data-dem="sim">ATENDER</button>'
+                : '<button class="act" disabled>ATENDER — requisitos não cumpridos</button>';
+      h += ' <button class="act dang" data-dem="nao">RECUSAR</button></div>';
+      h += '</div>';
+    }
+
     h += EL.Cronica.html(st, R);
     h += '<h2 class="sec">SITUAÇÃO — SOL ' + st.sol + '</h2>';
     h += '<div class="grid g2">';
@@ -589,6 +608,9 @@ EL.UI = (function () {
     for (var k in EL.BIOMAS) h += '<span><b>' + EL.BIOMAS[k].icone + '</b>' + EL.BIOMAS[k].nome + '</span>';
     h += '<span><b>≀</b>Rio Ferrun</span></div></div>';
 
+    /* expedição */
+    h += expedicaoHTML();
+
     /* detalhe */
     var s2 = st.setores[mapSel], bi = EL.BIOMAS[EL.bioma(mapSel)];
     h += '<h4 class="sub2">SETOR ' + mapSel + (EL.SETOR_NOMES[mapSel] ? ' — ' + EL.SETOR_NOMES[mapSel].toUpperCase() : '') + '</h4>';
@@ -610,6 +632,67 @@ EL.UI = (function () {
       });
     }
     h += '</div></div>';
+    return h;
+  }
+
+  function expedicaoHTML() {
+    var a = st.exped && st.exped.ativa;
+    var h = '<h4 class="sub2">EXPEDIÇÃO</h4>';
+    if (a) {
+      var nomes = st.crew.filter(function (c) { return a.ids.indexOf(c.id) >= 0; })
+                         .map(function (c) { return c.nome.split(' ')[0]; }).join(', ');
+      h += '<div class="exp em-campo">';
+      h += '<div class="exp-h"><b>Em campo — setor ' + a.setor + '</b><span>' + a.restam + ' de ' + a.sols + ' sols</span></div>';
+      h += '<div class="bar"><i style="width:' + Math.round((1 - a.restam / a.sols) * 100) + '%"></i></div>';
+      h += '<p>' + esc(nomes) + ' — fora do trabalho da base até voltarem.' +
+           (a.incidentes ? ' <b>' + a.incidentes + ' incidente(s) até agora.</b>' : '') + '</p>';
+      h += '<button class="act dang" data-exp="cancelar">Mandar voltar agora</button>';
+      h += '</div>';
+      return h;
+    }
+
+    var alvos = EL.Exped.setoresAlvo(st);
+    if (!alvos.length) {
+      h += '<div class="hint">Nenhum setor conhecido o bastante para uma expedição. Use o KITE ou o posto Expedição para levantar o terreno.</div>';
+      return h;
+    }
+    var disp = EL.Sim.vivos(st).filter(function (c) { return !c.emExpedicao && !c.ferimento; });
+    h += '<div class="hint">Uma expedição tira gente do trabalho por vários sols e volta com o que aquele setor tem. ' +
+         'Quanto mais longe e mais perigoso, mais rende — e mais arrisca.</div>';
+    h += '<div class="exp">';
+    h += '<label class="sub">Destino <select id="expSetor">';
+    alvos.forEach(function (sx) {
+      h += '<option value="' + sx + '"' + (sx === expSel ? ' selected' : '') + '>' + sx + ' — ' +
+           EL.BIOMAS[EL.bioma(sx)].nome + ' (' + EL.dist(EL.BASE_SETOR, sx) * 25 + ' km)</option>';
+    });
+    h += '</select></label>';
+
+    var alvo = expSel && alvos.indexOf(expSel) >= 0 ? expSel : alvos[0];
+    var escolhidos = disp.filter(function (c) { return expEquipe[c.id]; });
+    var sols = EL.Exped.duracao(st, alvo, Math.max(2, escolhidos.length));
+    var rk = EL.Exped.risco(st, alvo, escolhidos.length ? escolhidos : disp.slice(0, 3));
+    var nv = EL.Exped.nivelRisco(rk)[0];
+
+    h += '<div class="exp-eq">';
+    disp.forEach(function (c) {
+      h += '<button class="eqb' + (expEquipe[c.id] ? ' on' : '') + '" data-eq="' + c.id + '">' +
+           esc(c.nome.split(' ')[0]) + '<i>sobrev. ' + (c.per.sobrevivencia || 0) + '</i></button>';
+    });
+    h += '</div>';
+
+    h += '<div class="exp-info">' +
+      '<span>Equipe <b>' + escolhidos.length + '</b></span>' +
+      '<span>Duração <b>' + sols + ' sols</b></span>' +
+      '<span>Risco <b class="' + (rk > 0.06 ? 'bad' : rk > 0.03 ? 'warn' : 'good') + '">' + nv + '</b></span>' +
+      '</div>';
+
+    var esp = EL.Exped.espolio(st, alvo, escolhidos.length ? escolhidos : disp.slice(0, 3), sols);
+    var prev = Object.keys(esp).map(function (m) { return '~' + esp[m] + ' ' + EL.MAT[m].n; });
+    if (prev.length) h += '<div class="exp-prev">Deve trazer: ' + esc(prev.join(' · ')) + '</div>';
+
+    h += '<button class="act on" data-exp="enviar"' + (escolhidos.length < 2 ? ' disabled' : '') + '>' +
+         (escolhidos.length < 2 ? 'Escolha ao menos 2 pessoas' : 'ENVIAR EXPEDIÇÃO') + '</button>';
+    h += '</div>';
     return h;
   }
 
@@ -706,6 +789,26 @@ EL.UI = (function () {
         var e3 = EL.Sim.addProducao(st, t.dataset.prod, parseInt(t.dataset.q, 10)); if (e3) toast(e3); render(); EL.salvar(st);
       } else if (t.dataset.delprod) {
         st.filaProducao.splice(parseInt(t.dataset.delprod, 10), 1); render(); EL.salvar(st);
+      } else if (t.dataset.dem) {
+        var errD = EL.Demandas.resolver(st, t.dataset.dem === 'sim', EL.Sim.apiUI(st));
+        if (errD) toast(errD); else { render(); EL.salvar(st); }
+        return;
+      } else if (t.dataset.exp) {
+        if (t.dataset.exp === 'cancelar') { EL.Exped.cancelar(st); }
+        else {
+          var alvoE = document.getElementById('expSetor') ? document.getElementById('expSetor').value : null;
+          var ids = Object.keys(expEquipe).filter(function (k) { return expEquipe[k]; });
+          var errE = EL.Exped.enviar(st, alvoE, ids);
+          if (errE) { toast(errE); return; }
+          expEquipe = {};
+        }
+        render(); EL.salvar(st); return;
+      } else if (t.dataset.eq) {
+        expEquipe[t.dataset.eq] = !expEquipe[t.dataset.eq];
+        var rolagem = document.getElementById('tabbody').scrollTop;
+        renderTab();
+        document.getElementById('tabbody').scrollTop = rolagem;   // não pular a tela a cada clique
+        return;
       } else if (t.dataset.arrancar) {
         var l = st.agricultura.lotes[parseInt(t.dataset.arrancar, 10)];
         if (l) { l.crop = null; l.prog = 0; l.saude = 100; } render(); EL.salvar(st);
@@ -732,6 +835,11 @@ EL.UI = (function () {
         st.robos.atlas.tarefa = el.value; render(); EL.salvar(st);
       } else if (el.id === 'atlasRec') {
         var pr = el.value.split('|'); st.robos.atlas.recurso = pr[0]; st.robos.atlas.setor = pr[1]; EL.salvar(st);
+      } else if (el.id === 'expSetor') {
+        expSel = el.value;
+        var rol2 = document.getElementById('tabbody').scrollTop;
+        renderTab();
+        document.getElementById('tabbody').scrollTop = rol2;
       } else if (el.id === 'kiteAlvo') {
         st.robos.kite.alvo = el.value || null; render(); EL.salvar(st);
       }

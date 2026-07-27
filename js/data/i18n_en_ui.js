@@ -4,6 +4,35 @@ var EL = window.EL || {}; window.EL = EL;
 
 EL.SWAP_EN = [
 /* ---- títulos de seção ---- */
+/* ---- expedição e demandas ---- */
+['PEDIDO DA COLÔNIA','A REQUEST FROM THE COLONY'],
+['faltam ','']  ,
+[' sols</span>',' sols left</span>'],
+['último sol','last sol'],
+['ATENDER — requisitos não cumpridos','MEET IT — requirements not met'],
+['ATENDER','MEET IT'],
+['RECUSAR','REFUSE'],
+['Custo: ','Cost: '],
+['Uma expedição tira gente do trabalho por vários sols e volta com o que aquele setor tem. Quanto mais longe e mais perigoso, mais rende — e mais arrisca.',
+ 'An expedition takes people off the work roster for several sols and returns with whatever that sector holds. The further and more dangerous, the richer the haul — and the greater the risk.'],
+['Nenhum setor conhecido o bastante para uma expedição. Use o KITE ou o posto Expedição para levantar o terreno.',
+ 'No sector is known well enough for an expedition. Use KITE or the Expedition job to survey the ground.'],
+['EXPEDIÇÃO','EXPEDITION'],
+['Em campo — setor','In the field — sector'],
+[' de ',' of '],
+['— fora do trabalho da base até voltarem.','— off the base roster until they return.'],
+['incidente(s) até agora.','incident(s) so far.'],
+['Mandar voltar agora','Recall them now'],
+['Destino','Destination'],
+['sobrev. ','surv. '],
+['Equipe','Team'],
+['Duração','Duration'],
+['Risco','Risk'],
+['Deve trazer:','Should bring back:'],
+['Escolha ao menos 2 pessoas','Pick at least 2 people'],
+['ENVIAR EXPEDIÇÃO','SEND EXPEDITION'],
+['baixo','low'],['médio','medium'],['alto','high'],['muito alto','very high'],
+
 /* ---- desafio diário e arquivo ---- */
 ['DESAFIO DIÁRIO','DAILY CHALLENGE'],
 ['Todo mundo joga o mesmo planeta hoje. Amanhã tem outro.','Everyone plays the same planet today. Tomorrow there is another.'],

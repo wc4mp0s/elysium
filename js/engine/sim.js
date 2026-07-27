@@ -42,7 +42,7 @@ EL.Sim = (function () {
 
   /* ============ PONTOS DE TRABALHO ============ */
   function ptDe(st, c) {
-    if (!c.vivo) return 0;
+    if (!c.vivo || c.emExpedicao) return 0;
     var pt = 1.0;
     if (c.ferimento) pt *= clamp(1 - c.ferimento.sev / 105, 0.04, 1);
     if (c.doente && c.doente > st.sol) pt *= 0.35;
@@ -371,6 +371,7 @@ EL.Sim = (function () {
 
     for (var i = 0; i < vs.length; i++) {
       var c = vs[i];
+      if (c.emExpedicao) { c.trabalhoEfetivo = 'expedicao'; c.ptHoje = 0; continue; }
       if (c.forcado && c.forcadoAte > st.sol) c.trabalhoEfetivo = c.forcado;
       else { c.forcado = null; c.trabalhoEfetivo = c.trabalho; }
       var job = c.trabalhoEfetivo;
@@ -578,8 +579,8 @@ EL.Sim = (function () {
         lo.crop = null; lo.prog = 0; lo.saude = 100; continue;
       }
       if (lo.prog >= cp.dias) {
-        var rend = cp.rend * (lo.saude / 100) * (lo.mult || 1) * efTech(st, 'colheitaMult', 'max' ) ;
-        if (!rend || rend < 0) rend = cp.rend * (lo.saude / 100) * (lo.mult || 1);
+        var rend = cp.rend * (lo.saude / 100) * (lo.mult || 1) * (st.bonus.colheita || 1) * efTech(st, 'colheitaMult', 'max' ) ;
+        if (!rend || rend < 0) rend = cp.rend * (lo.saude / 100) * (lo.mult || 1) * (st.bonus.colheita || 1);
         rend *= D.producao;
         if (cp.rend > 0) { st.mat.comida += rend; st.colhidoTotal = (st.colhidoTotal || 0) + rend; }
         if (cp.fibra) st.mat.fibra += cp.fibra * (lo.saude / 100);
@@ -637,7 +638,7 @@ EL.Sim = (function () {
     var racaoReal = st.politica.racaoComida;
     if (st.mat.comida < comeu) { racaoReal *= st.mat.comida / comeu; comeu = st.mat.comida; }
     st.mat.comida = Math.max(0, st.mat.comida - comeu);
-    var perdaEst = st.mat.comida * (0.012 + efTech(st, 'perdaComida', 'sum') * 0.012);
+    var perdaEst = st.mat.comida * (0.012 + efTech(st, 'perdaComida', 'sum') * 0.012) * (st.bonus.perdaComida || 1);
     if (perdaEst > 0) st.mat.comida -= Math.max(0, perdaEst);
     st.mat.comida = Math.min(st.mat.comida, R2.estoqueComida);
     st.comidaSegura = R2.diasComida > 30;
@@ -750,6 +751,16 @@ EL.Sim = (function () {
     }
     st.agua.recicladorDano = Math.max(0, st.agua.recicladorDano - (acc.manutencao > 0.5 ? 0.03 : 0));
 
+    /* ---------- 16b. EXPEDIÇÃO E DEMANDAS ---------- */
+    var apiED = criarApi(st, rng, resumo(st));
+    try {
+      var tinha = !!(st.exped && st.exped.ativa);
+      EL.Exped.tick(st, rng, apiED);
+      if (tinha && !(st.exped && st.exped.ativa)) st.expedicoesFeitas = (st.expedicoesFeitas || 0) + 1;
+      EL.Demandas.verificarPrazo(st, apiED);
+      EL.Demandas.talvezAbrir(st, rng);
+    } catch (e) {}
+
     /* ---------- 17. EVENTOS ---------- */
     var R3 = resumo(st);
     st.moralMedia = R3.moralMedia; st.diasComida = R3.diasComida; st.diasAgua = R3.diasAgua;
@@ -763,7 +774,7 @@ EL.Sim = (function () {
       var ev = EL.EVENTOS[e1];
       if (st.eventosCd[ev.id] && st.eventosCd[ev.id] > st.sol) continue;
       var w = (typeof ev.peso === 'function') ? ev.peso(st) : ev.peso;
-      if (w > 0) cands.push({ ev: ev, w: w * D.evento * ((ev.cat === 'crise' || ev.cat === 'fauna') ? (st.bonus.risco || 1) : 1) });
+      if (w > 0) cands.push({ ev: ev, w: w * D.evento * ((ev.cat === 'crise' || ev.cat === 'fauna') ? (st.bonus.risco || 1) : 1) * (ev.cat === 'saude' ? (st.bonus.doenca || 1) : 1) });
     }
     var nEv = rng.chance(0.55) ? 1 : (rng.chance(0.25) ? 2 : 0);
     for (var e2 = 0; e2 < nEv && cands.length; e2++) {
@@ -894,7 +905,16 @@ EL.Sim = (function () {
     }
   }
 
+  /* api de efeitos para decisões tomadas fora do turno (demandas) */
+  function apiUI(st) {
+    var rng = EL.RNG.make(st.rngState);
+    var a = criarApi(st, rng, resumo(st));
+    st.rngState = rng.state;
+    return a;
+  }
+
   return {
+    apiUI: apiUI,
     ptDe: ptDe, resumo: resumo, jobsDisponiveis: jobsDisponiveis, avancar: avancar,
     resolverEscolha: resolverEscolha, iniciarObra: iniciarObra, cancelarObra: cancelarObra,
     podeConstruir: podeConstruir, iniciarPesquisa: iniciarPesquisa, podePesquisar: podePesquisar,

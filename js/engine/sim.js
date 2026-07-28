@@ -206,7 +206,11 @@ EL.Sim = (function () {
       var b2 = EL.buildPorId(pp2.id);
       if (b2 && b2.up && b2.up.agua) upAgua += b2.up.agua;
     }
-    R.aguaUso = upAgua;
+    // a água que passa por banho, praça e hospital é justamente a água cinza — a mais fácil
+    // de recuperar. O reciclador só valia para a água das pessoas, e o consumo dos prédios
+    // chegava a seis vezes o da tripulação inteira, matando de sede quem investia em moral.
+    R.aguaUso = upAgua * (1 - rec * 0.6);
+    R.aguaUsoBruto = upAgua;
     R.aguaPassiva = (efPredios(st, 'aguaProd', 'sum') + st.agua.fontes) * (st.bonus.agua || 1);
     R.aguaNet = R.aguaPassiva - R.aguaLiquida - upAgua;
 

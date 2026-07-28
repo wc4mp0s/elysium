@@ -328,7 +328,7 @@ EL.UI = (function () {
     if (c.moral < 30) av.push('!');
     var cl = c.ferimento || c.doente > st.sol ? ' ruim' : (c.fadiga > 80 || c.moral < 30 ? ' aviso' : '');
     return '<button class="pes' + cl + '"' + (remover ? ' data-tira="' + c.id + '"' : '') + '>' +
-      esc(c.nome.split(' ')[0]) + (av.length ? '<u>' + av.join('') + '</u>' : '') +
+      esc(EL.nomeCurto(c)) + (av.length ? '<u>' + av.join('') + '</u>' : '') +
       '<i>' + EL.Sim.ptDe(st, c).toFixed(2) + '</i></button>';
   }
 
@@ -408,7 +408,7 @@ EL.UI = (function () {
 
     if (emExped.length) {
       h += '<h4 class="sub2">EM EXPEDIÇÃO — ' + emExped.length + '</h4><div class="posto-eq livres">';
-      emExped.forEach(function (c) { h += '<button class="pes fora">' + esc(c.nome.split(' ')[0]) + '<i>fora</i></button>'; });
+      emExped.forEach(function (c) { h += '<button class="pes fora">' + esc(EL.nomeCurto(c)) + '<i>fora</i></button>'; });
       h += '</div>';
     }
 
@@ -462,8 +462,10 @@ EL.UI = (function () {
     var h = '<div class="escolha"><div class="escolha-h">Quem assume? <button class="x" data-abre="">fechar ✕</button></div>';
     disp.slice(0, 24).forEach(function (c) {
       var ap = aptidao(c, jid);
+      // nome completo aqui: a orientação e os diálogos chamam a tripulação pelo sobrenome,
+      // e a lista mostrava só o primeiro nome — não dava para saber quem era quem
       h += '<button class="esc-p" data-poe="' + c.id + '|' + esc(jid) + '">' +
-        esc(c.nome.split(' ')[0]) + '<i>' + (ap ? 'perícia ' + ap : 'sem perícia') +
+        esc(c.nome) + '<i>' + (ap ? 'perícia ' + ap : 'sem perícia') +
         ' · ' + esc(c.trabalho === 'descanso' ? 'descansando' : nomeJob(c.trabalho)) + '</i></button>';
     });
     h += '</div>';
@@ -488,7 +490,7 @@ EL.UI = (function () {
       EL.Sim.vivos(st).forEach(function (o) {
         if (o.id === c.id) return;
         var v = EL.getRel(st, c.id, o.id);
-        if (Math.abs(v) >= 25) rels.push((v > 0 ? '♥ ' : '✖ ') + o.nome.split(' ')[0] + ' (' + v + ')');
+        if (Math.abs(v) >= 25) rels.push((v > 0 ? '♥ ' : '✖ ') + EL.nomeCurto(o) + ' (' + v + ')');
       });
       if (rels.length) h += '<div class="rel">' + esc(rels.join(' · ')) + '</div>';
       if (c.bio) h += '<div class="rel" style="font-style:italic;color:#56677a">' + esc(c.bio) + '</div>';
@@ -764,7 +766,7 @@ EL.UI = (function () {
     var h = '<h4 class="sub2">EXPEDIÇÃO</h4>';
     if (a) {
       var nomes = st.crew.filter(function (c) { return a.ids.indexOf(c.id) >= 0; })
-                         .map(function (c) { return c.nome.split(' ')[0]; }).join(', ');
+                         .map(function (c) { return EL.nomeCurto(c); }).join(', ');
       h += '<div class="exp em-campo">';
       h += '<div class="exp-h"><b>Em campo — setor ' + a.setor + '</b><span>' + a.restam + ' de ' + a.sols + ' sols</span></div>';
       h += '<div class="bar"><i style="width:' + Math.round((1 - a.restam / a.sols) * 100) + '%"></i></div>';
@@ -800,7 +802,7 @@ EL.UI = (function () {
     h += '<div class="exp-eq">';
     disp.forEach(function (c) {
       h += '<button class="eqb' + (expEquipe[c.id] ? ' on' : '') + '" data-eq="' + c.id + '">' +
-           esc(c.nome.split(' ')[0]) + '<i>sobrev. ' + (c.per.sobrevivencia || 0) + '</i></button>';
+           esc(EL.nomeCurto(c)) + '<i>sobrev. ' + (c.per.sobrevivencia || 0) + '</i></button>';
     });
     h += '</div>';
 

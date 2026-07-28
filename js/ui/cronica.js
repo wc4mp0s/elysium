@@ -8,7 +8,7 @@ EL.Cronica = (function () {
 
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   function en() { return EL.LANG === 'en'; }
-  function prim(c) { return c.nome.split(' ')[0]; }
+  function prim(c) { return EL.nomeCurto(c); }
 
   /* ---------- cabeçalho: o sol como cena, não como tabela ---------- */
   var CEU = {

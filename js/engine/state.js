@@ -130,6 +130,19 @@ EL.traduzLog = function (txt) {
   return txt;
 };
 
+/* Nome curto de um colono.
+   Os eventos e diálogos sempre chamaram a tripulação pelo sobrenome — "Nakamura olha a
+   ferida", "Petrov contesta o comando" — mas as fichas de trabalho e a crônica mostravam
+   o primeiro nome. A orientação pedia "Antonova" e na lista aparecia "Larisa": não dava
+   para saber quem era quem. Aqui o jogo inteiro passa a usar a mesma forma.
+   As crianças nascidas em Elysium têm nome único ("Aurora 3") e ficam com o primeiro. */
+EL.nomeCurto = function (c) {
+  if (!c || !c.nome) return '';
+  if (c.nativo) return c.nome.split(' ')[0];
+  var p = c.nome.trim().split(/\s+/);
+  return p[p.length - 1];
+};
+
 EL.logar = function (st, txt, tipo) {
   st.log.push({ sol: st.sol, txt: EL.traduzLog(txt), tipo: tipo || '' });
   if (st.log.length > 600) st.log.splice(0, st.log.length - 600);

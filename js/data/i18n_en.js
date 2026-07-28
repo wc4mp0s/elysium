@@ -523,6 +523,18 @@ cons: {
   'Children do not work — they eat less than an adult, but they eat. In exchange, ' +
   '<b>victory requires 30 inhabitants</b>, and twenty people do not get there on their own. ' +
   'A hospital and modern medicine change the outcome of a birth a great deal.'],
+ cadeia_vidro: ['Brick and glass gate half the game',
+  'Greenhouse, masonry housing, permanent laboratory and hospital — all of them need <b>glass</b>, ' +
+  'and the colony produces none. Without them the crop freezes every Gelid, beds run short when children ' +
+  'are born, and research never accelerates.<br><br>' +
+  'The whole chain is: <b>sand</b> + <b>limestone</b> + <b>charcoal</b> → lime → glass, in the <b>Workshop</b>. ' +
+  'Sand and limestone lie far from base: that is what the <b>Outpost</b> is for — it opens extraction in ' +
+  'distant sectors. And somebody has to be on the <b>Workshop</b> job, or the queue does not move.'],
+ oficina_parada: ['The workshop has a queue and nobody working it',
+  'There are recipes waiting and nobody on the <b>Workshop</b> job. The queue does not move on its own — ' +
+  'it sits there until someone is assigned.<br><br>' +
+  'Worth checking for missing inputs too: a recipe without material stalls, warns once, ' +
+  'and drops out of the queue on its own after thirty sols.'],
  demanda_prazo: ['A deadline is running out',
   'There is an accepted request with a short deadline. Meeting it earns material and morale; failing costs morale and trust.<br><br>' +
   'If it can no longer be delivered, better to reorganise the work now than to find out on the last sol.']

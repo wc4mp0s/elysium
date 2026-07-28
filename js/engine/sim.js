@@ -137,7 +137,10 @@ EL.Sim = (function () {
     var R = {};
     R.pop = pop; R.popEq = popEq;
     R.abrigo = Math.floor(12 + efPredios(st, 'abrigo', 'sum'));            // 12 = casco da nave
-    R.abrigoDeficit = Math.max(0, pop - R.abrigo);
+    // uma criança dorme junto dos pais: contar cada recém-nascido como uma cama inteira
+    // fazia com que crescer criasse déficit de abrigo imediato e o frio matasse a colônia
+    // exatamente por ter conseguido ter filhos
+    R.abrigoDeficit = Math.max(0, Math.ceil(popEq) - R.abrigo);
     R.conforto = efPredios(st, 'conforto', 'sum');
     R.defesa = Math.round(efPredios(st, 'defesa', 'sum') * (st.bonus.defesa || 1));
     R.labSlots = Math.floor(efPredios(st, 'labSlots', 'sum'));
@@ -540,9 +543,19 @@ EL.Sim = (function () {
           for (var mo in rr.ent) st.mat[mo] -= rr.ent[mo];
           for (var so in rr.sai) if (rr.sai[so] > 0) st.mat[so] = (st.mat[so] || 0) + rr.sai[so];
           if (rr.energia) st.energia.armazenada -= rr.energia;
-          f.feitos++; f.ptFeito = 0;
+          f.feitos++; f.ptFeito = 0; f.parado = 0;
           if (f.feitos >= f.qtd) { st.filaProducao.splice(idxF, 1); continue; }
-        } else { EL.logar(st, 'Produção parada: falta insumo para ' + rr.n + '.', 'warn'); f.ptFeito = rr.pt; idxF++; }
+        } else {
+          // uma receita sem insumo ficava na fila para sempre, repetindo o mesmo aviso
+          // todo sol e afogando a crônica. Avisa uma vez, e desiste depois de 30 sols.
+          f.parado = (f.parado || 0) + 1;
+          if (f.parado === 1) EL.logar(st, 'Produção parada: falta insumo para ' + rr.n + '.', 'warn');
+          if (f.parado > 30) {
+            EL.logar(st, rr.n + ' saiu da fila da oficina: o insumo nunca chegou.', 'warn');
+            st.filaProducao.splice(idxF, 1); continue;
+          }
+          f.ptFeito = rr.pt; idxF++;
+        }
       }
     }
 
@@ -722,7 +735,11 @@ EL.Sim = (function () {
         var gR = clamp((0.35 - racaoReal) / 0.35, 0.1, 1);
         dS -= 1.5 * gR;
       }
-      if (p1.fadiga > 88) dS -= 1.4;
+      if (p1.fadiga > 88) {
+        // exaustão em degrau punia 89 igual a 100; agora o corpo cede na proporção do abuso
+        var dFad = 1.4 * clamp((p1.fadiga - 88) / 12, 0.15, 1);
+        dS -= dFad;
+      }
       if (st.clima.tempMin < 0 && R2.abrigoDeficit > 0) {
         // faltar duas camas não pode congelar as vinte pessoas: o frio cobra de quem ficou
         // de fora, e cobra conforme a noite. Este era o maior dreno de saúde do jogo inteiro.
@@ -745,7 +762,17 @@ EL.Sim = (function () {
           if (p1.ferimento.sev < 25 && p1.fome < 82) dS += 1.2;   // ferida leve não impede o corpo de se recompor
         }
       } else if (p1.fome < 82 && p1.fadiga < 88) dS += 2.2 + R2.curaMult * 0.7;
-      if (p1.doente && p1.doente > st.sol) dS -= 2.6;
+      if (p1.doente && p1.doente > st.sol) {
+        // leito, médico e medicina moderna não mudavam nada no curso de uma doença:
+        // adoecer numa colônia com hospital era igual a adoecer numa barraca
+        var cuid = 1;
+        if (R2.leitos > 0) cuid *= 0.78;
+        if (acc.medico > 0.3) cuid *= 0.72;
+        if (tem(st, 'medicina_mod')) cuid *= 0.72;
+        if (tem(st, 'medicina_avancada')) cuid *= 0.72;
+        var dDoe = 2.6 * cuid;
+        dS -= dDoe;
+      }
       p1.saude = clamp(p1.saude + dS, 0, 100);
       // moral
       var alvo = moralAmb + (p1.tracos.indexOf('otimista') >= 0 ? 10 : 0)

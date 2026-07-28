@@ -108,6 +108,29 @@ EL.Conselhos = (function () {
         return st.sol > 80 && R.diasComida > 60 && R.diasAgua > 60 && trabalhando(st, 'fabricar') === 0;
       } },
 
+    { id: 'cadeia_vidro', aba: 'oficina', prio: 1,
+      t: 'Tijolo e vidro travam metade do jogo',
+      d: 'Estufa, alojamento de alvenaria, laboratório permanente e hospital — todos exigem <b>vidro</b>, ' +
+         'e a colônia não produz nenhum. Sem eles a lavoura congela todo Gélido, falta cama quando nascem ' +
+         'crianças e a pesquisa nunca acelera.<br><br>' +
+         'A cadeia inteira é: <b>areia</b> + <b>calcário</b> + <b>carvão vegetal</b> → cal → vidro, na <b>Oficina</b>. ' +
+         'Areia e calcário ficam longe da base: é para isso que serve o <b>Posto avançado</b>, que abre a extração ' +
+         'em setores distantes. E alguém precisa estar no posto de <b>Oficina</b>, ou a fila não anda.',
+      quando: function (st) {
+        return st.sol > 90 && EL.Sim.tem(st, 'ceramica') && (st.mat.vidro || 0) < 60 &&
+               st.predios.filter(function (p) { return p.pronto && p.id === 'estufa'; }).length === 0;
+      } },
+
+    { id: 'oficina_parada', aba: 'trabalho', prio: 0,
+      t: 'A oficina tem fila e ninguém trabalhando nela',
+      d: 'Há receitas esperando e nenhuma pessoa no posto de <b>Oficina</b>. A fila não anda sozinha — ' +
+         'fica parada até alguém ser alocado.<br><br>' +
+         'Vale conferir também se falta insumo: uma receita sem material fica travada, avisa uma vez ' +
+         'e sai da fila sozinha depois de trinta sols.',
+      quando: function (st) {
+        return st.filaProducao && st.filaProducao.length > 0 && trabalhando(st, 'fabricar') === 0 && st.sol > 50;
+      } },
+
     { id: 'crescer', aba: null, prio: 3,
       t: 'Esta colônia pode crescer',
       d: 'Moral alta, comida garantida e ninguém passando fome: são as condições em que nasce gente em Elysium.<br><br>' +

@@ -359,11 +359,14 @@ EL.EVENTOS = [
  efe:function(a){ a.st.agua.recicladorDano+=0.10;
    a.log('Recuperação de água caiu 10 pontos. Reparo exige polímero ou uma vedação nova.','bad'); }},
 
-{id:'parto_risco', n:'Gravidez', cat:'saude', cd:200,
- peso:function(st){ return (st.sol>180&&st.moralMedia>58&&st.comidaSegura)?18*(st.bonus.natalidade||1):0; },
- txt:'Nakamura confirma. A primeira gravidez de Elysium.',
- efe:function(a){ a.st.flags.gravidez=a.st.sol+270; a.moralAll(+12);
-   a.log('Parto previsto para o sol '+a.st.flags.gravidez+'. A colônia inteira mudou de humor num único dia.','good'); }},
+{id:'parto_risco', n:'Gravidez', cat:'saude', cd:45,
+ peso:function(st){ var g=(st.flags.gestacoes||[]).length; var lim=Math.max(1,Math.floor(st.pop/8));
+   return (st.sol>110&&st.moralMedia>48&&st.comidaSegura&&g<lim)?95*(st.bonus.natalidade||1):0; },
+ txt:'Nakamura confirma a gravidez. Ninguém planejou isto — e ninguém quer desfazer.',
+ efe:function(a){ a.st.flags.gestacoes=a.st.flags.gestacoes||[];
+   var quando=a.st.sol+a.rng.int(95,125);
+   a.st.flags.gestacoes.push(quando); a.moralAll(+12);
+   a.log('Parto previsto para o sol '+quando+'. A colônia inteira mudou de humor num único dia.','good'); }},
 
 /* ================= SOCIAL ================= */
 {id:'confronto_petrov', n:'Petrov contesta o comando', cat:'social', cd:40,
@@ -626,6 +629,21 @@ EL.EVENTOS = [
  efe:function(a){ var q=Math.min(a.st.mat.comida, a.rng.int(20,70)); a.mat('comida',-q);
    a.log('Perdidas '+q+' rações. Um silo hermético teria evitado isso.','bad'); a.moralAll(-6); }},
 
+{id:'racao_normaliza', n:'Lindqvist volta com a planilha', cat:'social', cd:25,
+ peso:function(st){ return (st.diasComida>45&&st.politica.racaoComida<0.95)?120:0; },
+ txt:'Lindqvist põe a planilha na mesa outra vez, e desta vez sorrindo. "Estamos comendo menos do que precisamos há muito tempo. Não precisamos mais."',
+ escolhas:[
+  {t:'Restaurar a ração integral', d:'Fome e moral voltam ao normal. O estoque encolhe mais rápido.',
+   ef:function(a){ a.st.politica.racaoComida=1.0; a.st.politica.racaoDesigual=false; a.moralAll(+18);
+     a.log('Ração integral, pela primeira vez em muito tempo. Alguém repetiu o prato e ninguém disse nada.','good'); }},
+  {t:'Voltar a 85% e guardar o resto', d:'Meio-termo: a maior parte da moral volta e o silo continua crescendo.',
+   ef:function(a){ a.st.politica.racaoComida=Math.max(a.st.politica.racaoComida,0.85); a.moralAll(+9);
+     a.log('Ração a 85%. Okonkwo prefere ter margem para o Gélido.','good'); }},
+  {t:'Manter como está. O planeta ainda pode nos surpreender', d:'Estoque máximo. A fome crônica e a moral baixa continuam.',
+   ef:function(a){ a.moralAll(-6);
+     a.log('A ração continua cortada. Já ninguém lembra de como era comer até se sentir satisfeito.','warn'); }}
+ ]},
+
 {id:'fome_decisao', n:'A conta de Lindqvist', cat:'crise', cd:60,
  peso:function(st){ return (st.diasComida<12&&st.diasComida>0)?80:0; },
  txt:'Lindqvist coloca a planilha na mesa. "Com a ração atual, temos '+'" comida para menos de doze sols. Alguém precisa decidir hoje."',
@@ -723,10 +741,13 @@ EL.EVENTOS = [
  efe:function(a){ a.st.flags.primeiraColheita=true; a.moralAll(+20);
    a.log('Comida nascida em Elysium. Okonkwo não conseguiu falar durante o jantar.','good'); }},
 
-{id:'nascimento', n:'Nascimento', cat:'descoberta', cd:999,
- peso:function(st){ return (st.flags.gravidez&&st.sol>=st.flags.gravidez)?100:0; },
- txt:'Depois de 22 horas de trabalho de parto, com Nakamura e Moreau na sala, nasce a primeira pessoa de Elysium.',
- efe:function(a){ a.st.flags.gravidez=null;
+{id:'nascimento', n:'Nascimento', cat:'descoberta', cd:1,
+ peso:function(st){ return ((st.flags.gestacoes||[]).some(function(g){return st.sol>=g;}))?400:0; },
+ txt:'Depois de horas de trabalho de parto, com Nakamura e Moreau na sala, nasce mais uma pessoa de Elysium.',
+ efe:function(a){
+   var gs=a.st.flags.gestacoes||[]; var i=gs.findIndex?gs.findIndex(function(g){return a.st.sol>=g;}):-1;
+   if(i<0){ for(var z=0;z<gs.length;z++) if(a.st.sol>=gs[z]) { i=z; break; } }
+   if(i>=0) gs.splice(i,1); a.st.flags.gestacoes=gs;
    if(_tem(a.st,'medicina_mod')||_predio(a.st,'hospital')>0||a.rng.chance(0.72)){
      a.nascer(); a.moralAll(+30); a.log('Mãe e criança bem. A colônia deixou de ser uma tripulação e virou um povo.','good'); }
    else { a.moralAll(-25); a.log('Complicações. Nakamura fez tudo o que era possível fazer com o que existia. Não foi suficiente.','bad'); } }},

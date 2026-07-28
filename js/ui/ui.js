@@ -870,7 +870,9 @@ EL.UI = (function () {
     for (var sx in st.setores) if (st.setores[sx].explorado >= 50) st.setoresExplorados++;
     if (st.tutorial && st.tutorial.ativo) EL.Tutorial.verificar(st);
     renderTopo(R); renderSide(R); renderTab(); renderBottom(R); renderPendente(); renderDoutrina();
-    document.getElementById('tutSlot').innerHTML = EL.tHTML(EL.Tutorial.html(st));
+    var htmlTut = EL.Tutorial.html(st);
+    if (!htmlTut && EL.Conselhos) htmlTut = EL.Conselhos.html(st, R);
+    document.getElementById('tutSlot').innerHTML = EL.tHTML(htmlTut);
     renderFim();
   }
 
@@ -1003,6 +1005,27 @@ EL.UI = (function () {
 
     /* tutorial */
     document.getElementById('tutSlot').addEventListener('click', function (e) {
+      /* conselhos de meio de jogo: mesmo espaço da orientação, comportamento próprio */
+      var cb = e.target.closest('[data-cons],[data-cons-aba]');
+      if (cb) {
+        if (cb.dataset.cons === 'nunca') {
+          EL.UI.dialogo({
+            titulo: 'DESLIGAR CONSELHOS',
+            texto: 'Os conselhos aparecem uma única vez cada, quando a situação acontece — ração cortada, ' +
+                   'prédio desabando, solo esgotado, Gélido chegando.',
+            nota: 'Dá para voltar a ligá-los apenas começando outra colônia.',
+            cancelar: 'Manter', ok: 'Desligar'
+          }, function (ok) { if (ok) { EL.Conselhos.desligar(st); render(); EL.salvar(st); } });
+          return;
+        }
+        EL.Conselhos.marcarVisto(st, cb.dataset.id);
+        if (cb.dataset.consAba) {
+          var av = document.querySelector('#tabs button[data-tab="' + cb.dataset.consAba + '"]');
+          if (av) av.click();
+        }
+        render(); EL.salvar(st);
+        return;
+      }
       var b = e.target.closest('[data-tut],[data-tut-aba]'); if (!b) return;
       if (b.dataset.tutAba) {
         var alvo = document.querySelector('#tabs button[data-tab="' + b.dataset.tutAba + '"]');

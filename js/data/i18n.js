@@ -98,6 +98,14 @@ EL.aplicarIdioma = function () {
       EL.Tutorial.PASSOS[i2].feito = D.tut[i2][2];
     }
   }
+  /* conselhos de meio de jogo */
+  if (D.cons && EL.Conselhos) {
+    for (var i3 = 0; i3 < EL.Conselhos.LISTA.length; i3++) {
+      var cc = EL.Conselhos.LISTA[i3], tc = D.cons[cc.id];
+      if (!tc) continue;
+      cc.t = tc[0]; cc.d = tc[1];
+    }
+  }
   document.documentElement.lang = 'en';
 };
 

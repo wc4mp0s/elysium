@@ -470,6 +470,62 @@ tut: [
   'You have <b>40 sols of rations</b>. Potatoes take <b>78 sols</b> to be ready. The arithmetic does not work.<br><br>' +
   'The ways out: <b>ration</b> (Labour tab), plant <b>Chlorella</b> (22 sols) as soon as you have beds, and open <b>more beds than seems necessary</b>.',
   'You have been warned. From here, the colony is yours.']
-]
+],
+
+/* conselhos de meio de jogo — mesma ordem de EL.Conselhos.LISTA */
+cons: {
+ agua_resolvida: ['Water has stopped being the problem',
+  'The reserve now covers more than 60 sols and keeps rising. That frees people from the bucket — and the next clock is food.<br><br>' +
+  'Move people off water extraction and onto <b>Agriculture</b> and <b>Construction</b>. ' +
+  'Beds are the structure that changes the mid-game most: <b>plant more than seems necessary</b>, because part of the crop always dies.'],
+ racao_esquecida: ['The colony is still on half rations',
+  'At some point you cut the ration to stretch the stores. That cut <b>never undoes itself</b>, and today the silo is full.<br><br>' +
+  'A cut ration keeps hunger high and morale low <i>permanently</i>: less work, less research, no pregnancies. ' +
+  'Put it back to 100% on the <b>Labour</b> tab, in the policy bar.'],
+ manutencao: ['The buildings are rotting',
+  'Nobody is on <b>Maintenance</b> and the base already has more structure than it can hold up on its own.<br><br>' +
+  'An unmaintained building loses integrity every sol and eventually collapses. When a greenhouse collapses, ' +
+  '<b>half the crop inside dies with it</b> — and raising it again costs almost half of building it new. ' +
+  'One person permanently on Maintenance holds roughly twenty structures.'],
+ abrigo_frio: ['People are sleeping outside',
+  'There are not enough beds for the crew and the nights already drop below freezing.<br><br>' +
+  'Whoever sleeps outside loses health every frost and wakes up more tired — a constant drain that ' +
+  'shows up nowhere until somebody dies of “organic collapse”. Shelter is cheap next to losing a person.'],
+ laboratorio: ['There is no laboratory standing',
+  'People are assigned to Research and there is no bench to work at. Without a laboratory research yields ' +
+  '<b>a quarter</b> of normal — they stay busy and almost nothing progresses.<br><br>' +
+  'Raising or building a laboratory is, almost always, the most profitable work available.'],
+ solo: ['The soil is running out',
+  'The crop consumes nitrogen, phosphorus and potassium faster than the ground replaces them. A starved bed ' +
+  'grows slowly and gets sick.<br><br>' +
+  'Three ways out, and all three are worth it: extract <b>nitrate</b>, <b>phosphate</b> and <b>sylvite</b> on the map, ' +
+  'research <b>Composting</b> and <b>Biodigestion</b>, and do not open new beds faster than you can fertilise them.'],
+ doutrina: ['A crossroads has opened',
+  'The colony has reached a point where it must choose <b>what it is going to be</b>, and the options exclude each other.<br><br>' +
+  'Unlike research, a doctrine <b>closes the other paths for good</b>. There is no right choice: ' +
+  'there is the choice consistent with the colony you already have. Look at what is missing before deciding.'],
+ expedicao: ['You can send people far now',
+  'Sectors explored enough now accept an <b>expedition</b>: a team leaves for several sols and comes back with ' +
+  'material the base cannot produce, plus research points.<br><br>' +
+  'The cost is real — whoever goes is not working at home, and there is risk of accident. Send <b>4 to 6 people</b>: ' +
+  'a small team gets hurt far more often. Someone with high survival skill cuts the risk considerably.'],
+ gelido: ['The Gelid is coming',
+  'Fewer than 20 sols until the cold season. It lasts a long time and charges on three fronts at once: ' +
+  'unprotected crops freeze, insufficient shelter turns into mortality, and solar generation drops.<br><br>' +
+  'Before it starts: cover what you can (<b>greenhouse</b>), guarantee a bed for everyone, and take the food ' +
+  'store past what feels excessive.'],
+ industria: ['Hands to spare: start industry',
+  'Food and water are secured for a long time. From here the colony stops surviving and starts building.<br><br>' +
+  'Put people on <b>Fabrication</b> and in the <b>Workshop</b>: good tools multiply everything else in the game, ' +
+  'and without a metal chain there is no electricity, no modern medicine, no terraforming.'],
+ crescer: ['This colony can grow',
+  'High morale, food secured and nobody going hungry: these are the conditions in which people are born on Elysium.<br><br>' +
+  'Children do not work — they eat less than an adult, but they eat. In exchange, ' +
+  '<b>victory requires 30 inhabitants</b>, and twenty people do not get there on their own. ' +
+  'A hospital and modern medicine change the outcome of a birth a great deal.'],
+ demanda_prazo: ['A deadline is running out',
+  'There is an accepted request with a short deadline. Meeting it earns material and morale; failing costs morale and trust.<br><br>' +
+  'If it can no longer be delivered, better to reorganise the work now than to find out on the last sol.']
+}
 
 };

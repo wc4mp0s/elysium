@@ -131,9 +131,11 @@ EL.Sim = (function () {
   /* ============ RESUMO DERIVADO (usado pela UI e pelo turno) ============ */
   function resumo(st) {
     var vs = vivos(st), pop = vs.length;
+    /* uma criança de Elysium ocupa uma cama e come, mas não come como um adulto de 1,06 g */
+    var popEq = 0; for (var _i = 0; _i < vs.length; _i++) popEq += vs[_i].nativo ? 0.45 : 1;
     var Dc = dificuldade(st).consumo;
     var R = {};
-    R.pop = pop;
+    R.pop = pop; R.popEq = popEq;
     R.abrigo = Math.floor(12 + efPredios(st, 'abrigo', 'sum'));            // 12 = casco da nave
     R.abrigoDeficit = Math.max(0, pop - R.abrigo);
     R.conforto = efPredios(st, 'conforto', 'sum');
@@ -149,8 +151,8 @@ EL.Sim = (function () {
     R.moralPredios = efPredios(st, 'moral', 'sum');
     R.higiene = efPredios(st, 'higiene', 'sum');
     R.frioProt = clamp(efPredios(st, 'frioProt', 'max') + (tem(st, 'concreto_tec') ? 0.1 : 0), 0, 0.85);
-    R.estoqueAgua = Math.round(2000 + efPredios(st, 'estoqueAgua', 'sum'));
-    R.estoqueComida = Math.round(900 + efPredios(st, 'estoqueComida', 'sum'));
+    R.estoqueAgua = Math.round(1400 + pop * 90 + efPredios(st, 'estoqueAgua', 'sum'));
+    R.estoqueComida = Math.round(700 + pop * 70 + efPredios(st, 'estoqueComida', 'sum'));
     R.estoqueMat = Math.round(8000 + efPredios(st, 'estoqueMat', 'sum'));
     R.roboSlots = Math.floor(efPredios(st, 'roboSlots', 'sum'));
     R.bateriaExtra = efPredios(st, 'bateria', 'sum');
@@ -193,7 +195,7 @@ EL.Sim = (function () {
     /* --- água --- */
     var rec = clamp(st.agua.recicladorBase + efTech(st, 'reciclador', 'sum') + efPredios(st, 'reciclador', 'sum') - st.agua.recicladorDano, 0.15, 0.94);
     R.reciclador = rec;
-    R.aguaBruta = pop * 7.4 * st.politica.racaoAgua * Dc;
+    R.aguaBruta = popEq * 7.4 * st.politica.racaoAgua * Dc;
     R.aguaLiquida = R.aguaBruta * (1 - rec);
     var upAgua = 0;
     for (var u = 0; u < st.predios.length; u++) {
@@ -207,7 +209,7 @@ EL.Sim = (function () {
 
     /* --- alimento --- */
     R.comidaMult = Math.max(1, efPredios(st, 'comidaMult', 'max'));
-    R.comidaDia = pop * st.politica.racaoComida * Dc / R.comidaMult;
+    R.comidaDia = popEq * st.politica.racaoComida * Dc / R.comidaMult;
     R.diasComida = R.comidaDia > 0 ? st.mat.comida / R.comidaDia : 999;
     R.diasAgua = (R.aguaLiquida + upAgua - R.aguaPassiva) > 0
       ? st.mat.agua / (R.aguaLiquida + upAgua - R.aguaPassiva) : 999;
@@ -225,6 +227,20 @@ EL.Sim = (function () {
     for (var v2 = 0; v2 < vs.length; v2++) { R.moralMedia += vs[v2].moral; R.saudeMedia += vs[v2].saude; R.fadigaMedia += vs[v2].fadiga; }
     if (pop) { R.moralMedia /= pop; R.saudeMedia /= pop; R.fadigaMedia /= pop; }
     return R;
+  }
+
+  /* O luto tem de doer muito e depois cicatrizar. Uma penalidade permanente por morto
+     transformava qualquer baixa numa sentença: menos moral, menos trabalho, mais baixas. */
+  function lutoRecente(st) {
+    var soma = 0;
+    for (var i = 4; i < st.mortos.length; i++) {          // os 4 primeiros morreram na queda
+      var idade = st.sol - st.mortos[i].sol;
+      if (idade < 0 || idade > 100) continue;
+      soma += 6 * (1 - idade / 100);
+    }
+    if (st.bonus.lutoDobrado) soma *= 1.6;
+    if (st.bonus.lutoMetade) soma *= 0.6;
+    return Math.min(soma, 20);
   }
 
   /* ============ API DE EVENTOS ============ */
@@ -497,7 +513,9 @@ EL.Sim = (function () {
       pr.ptFeito += usa; ptObra -= usa;
       if (pr.ptFeito >= bd.pt) {
         pr.pronto = true; st.stats.predios++;
-        EL.logar(st, '✔ Construído: ' + bd.n + (pr.setor !== EL.BASE_SETOR ? ' (' + pr.setor + ')' : ''), 'good');
+        EL.logar(st, (pr.ruina ? '✔ Reerguido: ' : '✔ Construído: ') + bd.n +
+          (pr.setor !== EL.BASE_SETOR ? ' (' + pr.setor + ')' : ''), 'good');
+        pr.ruina = false;
         if (bd.ef.outpost) st.setores[pr.setor].outpost = true;
         if (bd.ef.rota) st.setores[pr.setor].rota = true;
         if (bd.ef.lotes) for (var lz = 0; lz < bd.ef.lotes; lz++)
@@ -531,14 +549,20 @@ EL.Sim = (function () {
     /* ---------- 8. PESQUISA ---------- */
     var slots = R.labSlots;
     var ppGer = acc.pesquisar * 4 * R.ppMult * D.pp;
-    if (slots <= 0) ppGer = 0;
+    // sem bancada ainda se estuda — mal, com o caderno no colo. Zerar a pesquisa
+    // transformava a perda do laboratório numa sentença silenciosa e definitiva.
+    if (slots <= 0) ppGer *= 0.25;
     else {
       var pesquisadores = vs.filter(function (x) { return x.trabalhoEfetivo === 'pesquisar'; }).length;
       if (pesquisadores > slots) ppGer *= slots / pesquisadores;
     }
     st.ppHoje = ppGer;
     if (st.tech.ativa.length && ppGer > 0) {
-      var cada = ppGer / st.tech.ativa.length;
+      // o banco de PP vinha de descobertas e expedições e nunca era gasto em nada:
+      // agora ele acelera o que está na bancada até se esgotar
+      var doBanco = Math.min(st.tech.pp, ppGer * 0.6 + 1);
+      st.tech.pp -= doBanco;
+      var cada = (ppGer + doBanco) / st.tech.ativa.length;
       for (var a1 = st.tech.ativa.length - 1; a1 >= 0; a1--) {
         var at = st.tech.ativa[a1], tt = EL.techPorId(at.id);
         at.pp += cada;
@@ -570,13 +594,15 @@ EL.Sim = (function () {
       if (tMed > cp.tMax) lo.saude -= (tMed - cp.tMax) * 1.6;
       // nutrientes
       var fome = 0;
-      if (solo.n < cp.n * 0.35 && cp.n > 0) fome += 0.4;
-      if (solo.p < cp.p * 0.35) fome += 0.3;
-      if (solo.k < cp.k * 0.35) fome += 0.2;
-      if (solo.ph > 7.9 && !tem(st, 'agricultura_int')) fome += 0.15;
+      if (cp.n > 0 && solo.n < cp.n * 0.35) fome += 0.30;
+      if (solo.p < cp.p * 0.35) fome += 0.22;
+      if (solo.k < cp.k * 0.35) fome += 0.15;
+      if (solo.ph > 7.9 && !tem(st, 'agricultura_int')) fome += 0.10;
+      fome = Math.min(fome, 0.72);          // solo pobre atrasa a lavoura; nunca a paralisa
       var vel = (1 - fome) * clamp(cuidadoPorLote, 0.2, 1.3);
       lo.prog += vel;
-      lo.saude = clamp(lo.saude - fome * 6 + (cuidadoPorLote > 0.9 ? 1.5 : 0), 0, 100);
+      // um lote mal nutrido fica raquítico, não morre: piso de 22 de saúde
+      lo.saude = clamp(lo.saude - fome * 2.5 + (cuidadoPorLote > 0.9 ? 2 : 0.5), 22, 100);
       // consumo de nutrientes
       solo.n = Math.max(0, solo.n - cp.n / cp.dias * 0.25 * (cp.n > 0 ? 1 : -1));
       solo.p = Math.max(0, solo.p - cp.p / cp.dias * 0.25);
@@ -601,15 +627,20 @@ EL.Sim = (function () {
     }
     // fertilizante aplicado automaticamente se houver
     if (st.mat.fertilizante > 0 && lotesAtivos > 0) {
-      var usoF = Math.min(st.mat.fertilizante, lotesAtivos * 1.5);
+      var usoF = Math.min(st.mat.fertilizante, lotesAtivos * 3);
       st.mat.fertilizante -= usoF;
       solo.n += usoF * 0.5; solo.p += usoF * 0.3; solo.k += usoF * 0.35;
     }
-    if (st.mat.nitrato > 0 && solo.n < 45) { var un = Math.min(st.mat.nitrato, 24); st.mat.nitrato -= un; solo.n += un * 0.45; }
-    if (st.mat.fosfato > 0 && solo.p < 40) { var up2 = Math.min(st.mat.fosfato, 16); st.mat.fosfato -= up2; solo.p += up2 * 0.55; }
-    if (st.mat.silvita > 0 && solo.k < 40) { var uk = Math.min(st.mat.silvita, 16); st.mat.silvita -= uk; solo.k += uk * 0.5; }
+    // a reposição precisa acompanhar o tamanho da lavoura, senão construir mais canteiros
+    // acelera o esgotamento e a colônia morre de fome por ter plantado demais
+    var escalaSolo = Math.max(1, lotesAtivos * 0.4);
+    if (st.mat.nitrato > 0 && solo.n < 45) { var un = Math.min(st.mat.nitrato, 24 * escalaSolo); st.mat.nitrato -= un; solo.n += un * 0.45; }
+    if (st.mat.fosfato > 0 && solo.p < 40) { var up2 = Math.min(st.mat.fosfato, 16 * escalaSolo); st.mat.fosfato -= up2; solo.p += up2 * 0.55; }
+    if (st.mat.silvita > 0 && solo.k < 40) { var uk = Math.min(st.mat.silvita, 16 * escalaSolo); st.mat.silvita -= uk; solo.k += uk * 0.5; }
     if (st.mat.gesso > 0 && solo.ph > 7.4) { var ug = Math.min(st.mat.gesso, 10); st.mat.gesso -= ug; solo.ph = Math.max(6.6, solo.ph - ug * 0.01); solo.sal = Math.max(0, solo.sal - ug * 0.002); }
-    if (tem(st, 'compostagem')) { solo.n += 0.5; solo.p += 0.3; solo.k += 0.3; }
+    if (tem(st, 'compostagem')) { solo.n += 0.5 * escalaSolo; solo.p += 0.3 * escalaSolo; solo.k += 0.3 * escalaSolo; }
+    // mineralização natural do loess vulcânico: lento, mas nunca zero
+    solo.n += 0.25; solo.p += 0.12; solo.k += 0.18;
     solo.org = clamp(solo.org + (tem(st, 'compostagem') ? 0.25 : 0.02), 0, 90);
 
     /* ---------- 10. ÁGUA ---------- */
@@ -621,7 +652,10 @@ EL.Sim = (function () {
     st.agua.produzidaHoje = aguaProd; st.agua.consumidaHoje = consomeAgua;
     if (st.mat.agua < 0) {
       var falta2 = -st.mat.agua; st.mat.agua = 0; st.faltouAgua = true;
-      vivos(st).forEach(function (c) { c.saude -= 9; c.fadiga += 14; c.moral -= 6; });
+      st.ultimoSemAgua = st.sol;
+      // faltar 5% da água não é a mesma coisa que não ter nenhuma: o dano segue o tamanho do rombo
+      var gravA = clamp(falta2 / Math.max(1, consomeAgua), 0.12, 1);
+      vivos(st).forEach(function (c) { c.saude -= 9 * gravA; c.fadiga += 14 * gravA; c.moral -= 6 * gravA; });
       EL.logar(st, '⚠ FALTOU ÁGUA: déficit de ' + Math.round(falta2) + ' L. Desidratação generalizada.', 'bad');
     }
     st.mat.agua = Math.min(st.mat.agua, R2.estoqueAgua);
@@ -650,12 +684,13 @@ EL.Sim = (function () {
     st.mat.comida = Math.min(st.mat.comida, R2.estoqueComida);
     st.comidaSegura = R2.diasComida > 30;
 
+
     /* ---------- 13. NECESSIDADES, SAÚDE, MORAL ---------- */
     var moralAmb = 50 + R2.conforto * 1.1 + R2.moralPredios * 2.2 + (racaoReal - 1) * 45
       - R2.abrigoDeficit * 3.2 - (st.aguaContaminada ? 4 : 0)
       + (st.bonus.moralComando ? st.bonus.moralComando * 3 : 0)
       + (st.bonus.moralAlcool ? 5 : 0) - (st.crise ? 8 : 0)
-      + (st.mortos.length > 4 ? -(st.mortos.length - 4) * 1.2 : 0)
+      - lutoRecente(st)
       + ((R2.diasComida > 30 && R2.diasAgua > 20 && R2.abrigoDeficit === 0) ? 12 : 0)
       + (st.bonus.moral || 0);
     var apoioPsi = acc.apoio * 9;
@@ -682,18 +717,34 @@ EL.Sim = (function () {
       // saúde
       var dS = 0;
       if (p1.fome > 80) dS -= (p1.fome - 80) * 0.09;
-      if (racaoReal < 0.35) dS -= 1.5;
+      if (racaoReal < 0.35) {
+        // comer 34% da ração não é a mesma coisa que comer 5%: a penalidade acompanha o corte
+        var gR = clamp((0.35 - racaoReal) / 0.35, 0.1, 1);
+        dS -= 1.5 * gR;
+      }
       if (p1.fadiga > 88) dS -= 1.4;
-      if (st.clima.tempMin < 0 && R2.abrigoDeficit > 0) dS -= 2.2;
+      if (st.clima.tempMin < 0 && R2.abrigoDeficit > 0) {
+        // faltar duas camas não pode congelar as vinte pessoas: o frio cobra de quem ficou
+        // de fora, e cobra conforme a noite. Este era o maior dreno de saúde do jogo inteiro.
+        var fracFora = clamp(R2.abrigoDeficit / Math.max(1, vs.length), 0, 1);
+        var frioSev = clamp(-st.clima.tempMin / 18, 0.35, 1.7);
+        var dFrio = 2.2 * fracFora * frioSev;
+        dS -= dFrio;
+      }
       if (p1.ferimento) {
-        var cura = 2.4 * R2.curaMult * (acc.medico > 0.3 ? 1.6 : 0.7) * (R2.leitos > 0 ? 1.2 : 1);
+        // medicina que não cura mais rápido do que a ferida agrava é decoração:
+        // com médico, leito e medicina moderna, um ferimento grave passa a ser recuperável
+        var cura = 3.2 * R2.curaMult * (acc.medico > 0.3 ? 1.7 : 0.85) * (R2.leitos > 0 ? 1.25 : 1);
         p1.ferimento.sev -= cura;
         p1.ferimento.dias--;
         if (p1.ferimento.sev <= 0 || p1.ferimento.dias <= 0) {
           EL.logar(st, p1.nome + ' recuperou-se de: ' + p1.ferimento.n + '.', 'good');
           p1.ferimento = null;
-        } else dS -= p1.ferimento.sev * 0.035;
-      } else if (p1.fome < 82 && p1.fadiga < 88) dS += 2.2;
+        } else {
+          dS -= p1.ferimento.sev * 0.030;
+          if (p1.ferimento.sev < 25 && p1.fome < 82) dS += 1.2;   // ferida leve não impede o corpo de se recompor
+        }
+      } else if (p1.fome < 82 && p1.fadiga < 88) dS += 2.2 + R2.curaMult * 0.7;
       if (p1.doente && p1.doente > st.sol) dS -= 2.6;
       p1.saude = clamp(p1.saude + dS, 0, 100);
       // moral
@@ -713,7 +764,12 @@ EL.Sim = (function () {
         p1.saude = 8; p1.fadiga = Math.min(p1.fadiga, 70);
         if (p1.ferimento) p1.ferimento.sev = Math.min(p1.ferimento.sev, 30);
       } else if (p1.saude <= 0) {
-        var causa = EL.trCausa(st.faltouAgua ? 'Desidratação' : (p1.ferimento ? p1.ferimento.n : (p1.fome > 90 ? 'Inanição' : 'Colapso orgânico')));
+        // a sede mata dias depois do dia seco: sem esta memória toda morte por água
+        // aparecia como 'Colapso orgânico' e o jogador nunca descobria o que o matou
+        var sedeRecente = st.faltouAgua || (st.ultimoSemAgua && st.sol - st.ultimoSemAgua <= 12);
+        var causa = EL.trCausa(p1.ferimento ? p1.ferimento.n
+                    : (p1.fome > 90 ? 'Inanição'
+                    : (sedeRecente ? 'Desidratação' : 'Colapso orgânico')));
         criarApi(st, rng, R2).matar(p1.id, causa);
         criarApi(st, rng, R2).moralAll(-14);
       }
@@ -747,14 +803,24 @@ EL.Sim = (function () {
       pd.hp = Math.min(100, pd.hp);
       if (pd.hp <= 0) {
         var bcol = EL.buildPorId(pd.id);
-        EL.logar(st, '✖ ' + bcol.n + ' colapsou por falta de manutenção.', 'bad');
-        if (bcol.ef && bcol.ef.lotes) {           // some os canteiros/estufas junto com a estrutura
-          var rem = bcol.ef.lotes;
+        /* Apagar a estrutura do mapa era o pior momento do jogo: a estufa sumia com a
+           lavoura inteira dentro e não havia como voltar atrás. Uma obra abandonada vira
+           ruína — de pé o bastante para ser reerguida, e cara o bastante para doer. */
+        EL.logar(st, '✖ ' + bcol.n + ' desabou por falta de manutenção. Restou a estrutura, para quem tiver braço de reerguê-la.', 'bad');
+        if (bcol.ef && bcol.ef.lotes) {
+          var rem = bcol.ef.lotes, meio = Math.ceil(bcol.ef.lotes / 2);
           for (var lx = st.agricultura.lotes.length - 1; lx >= 0 && rem > 0; lx--) {
-            if (!!st.agricultura.lotes[lx].protegido === !!bcol.ef.protegido) { st.agricultura.lotes.splice(lx, 1); rem--; }
+            var lt = st.agricultura.lotes[lx];
+            if (!!lt.protegido !== !!bcol.ef.protegido) continue;
+            if (meio > 0) { st.agricultura.lotes.splice(lx, 1); meio--; }   // metade se perde no desabamento
+            else { lt.protegido = false; lt.saude = Math.min(lt.saude, 55); }  // a outra metade fica ao relento
+            rem--;
           }
         }
-        st.predios.splice(d1, 1);
+        pd.pronto = false;
+        pd.hp = 100;
+        pd.ptFeito = bcol.pt * 0.45;              // reerguer custa pouco mais da metade de construir
+        pd.ruina = true;
       }
     }
     st.agua.recicladorDano = Math.max(0, st.agua.recicladorDano - (acc.manutencao > 0.5 ? 0.03 : 0));
@@ -882,7 +948,7 @@ EL.Sim = (function () {
       EL.logar(st, '☠☠ FIM. Todos morreram no sol ' + st.sol + '.', 'bad');
       return;
     }
-    if (tem(st, 'terraformacao') && v.length >= 40) {
+    if (tem(st, 'terraformacao') && v.length >= 30) {
       st.fimDeJogo = { tipo: 'vitoria', txt: EL.LANG === 'en'
         ? 'Sol ' + st.sol + ': atmospheric CO₂ begins to fall. Elysium is a civilisation.'
         : 'Sol ' + st.sol + ': o CO₂ atmosférico começa a cair. Elysium é uma civilização.' };

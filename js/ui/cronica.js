@@ -42,8 +42,9 @@ EL.Cronica = (function () {
     var feridos = vs.filter(function (c) { return c.ferimento && c.ferimento.sev > 35; });
     if (feridos.length) {
       var f = feridos[0];
-      out.push(e ? prim(f) + ' is still down with ' + f.ferimento.n.toLowerCase() + '. Nakamura checks the wound twice a sol now.'
-                 : prim(f) + ' continua de cama com ' + f.ferimento.n.toLowerCase() + '. Nakamura olha a ferida duas vezes por sol agora.');
+      var fn = (EL.trFerimento ? EL.trFerimento(f.ferimento.n) : f.ferimento.n).toLowerCase();
+      out.push(e ? prim(f) + ' is still down with ' + fn + '. Nakamura checks the wound twice a sol now.'
+                 : prim(f) + ' continua de cama com ' + fn + '. Nakamura olha a ferida duas vezes por sol agora.');
     }
 
     var exaustos = vs.filter(function (c) { return c.fadiga > 85 && c.trabalho !== 'descanso'; });
@@ -115,8 +116,14 @@ EL.Cronica = (function () {
   /* ---------- o que está prestes a acontecer ---------- */
   function tensao(st, R) {
     var e = en(), t = [];
-    if (R.diasAgua < 8) t.push([e ? 'Water runs out in ' + R.diasAgua.toFixed(0) + ' sols.'
-                                  : 'A água acaba em ' + R.diasAgua.toFixed(0) + ' sols.', 'crit']);
+    if (R.diasAgua < 8) {
+      t.push([e ? 'Water runs out in ' + R.diasAgua.toFixed(0) + ' sols.'
+                : 'A água acaba em ' + R.diasAgua.toFixed(0) + ' sols.', 'crit']);
+    } else if (R.diasAgua < 30 && R.aguaNet < 0) {
+      /* o poço secando devagar matava colônias inteiras sem nunca aparecer na tela */
+      t.push([e ? 'The reserve is shrinking every sol: ' + R.diasAgua.toFixed(0) + ' sols of water left.'
+                : 'A reserva encolhe todo sol: restam ' + R.diasAgua.toFixed(0) + ' sols de água.', 'warn']);
+    }
     if (R.diasComida < 10) t.push([e ? 'Food runs out in ' + R.diasComida.toFixed(0) + ' sols.'
                                      : 'A comida acaba em ' + R.diasComida.toFixed(0) + ' sols.', 'crit']);
     if (R.balanco < 0 && st.energia.armazenada < Math.abs(R.balanco) * 6)
@@ -130,6 +137,17 @@ EL.Cronica = (function () {
     if (st.clima.estacao === 'verdejo' && st.clima.mare > 7.6)
       t.push([e ? 'The compound tide is rising. The Ferrun is swelling.'
                 : 'A maré composta está subindo. O Ferrun engorda.', 'warn']);
+    /* pesquisar sem bancada rende quase nada e não dava nenhum sinal */
+    if (R.labSlots <= 0 && st.tech.ativa && st.tech.ativa.length) {
+      t.push([e ? 'No working laboratory: research is crawling.'
+                : 'Nenhum laboratório de pé: a pesquisa mal anda.', 'crit']);
+    }
+    /* meia ração esquecida é o erro silencioso mais caro do jogo */
+    if (st.politica.racaoComida < 0.95 && R.diasComida > 40) {
+      var pc = Math.round(st.politica.racaoComida * 100);
+      t.push([e ? 'Still eating at ' + pc + '% rations with ' + R.diasComida.toFixed(0) + ' sols of food stored.'
+                : 'Ainda comendo ' + pc + '% da ração, com ' + R.diasComida.toFixed(0) + ' sols de comida no silo.', 'warn']);
+    }
     if (st.clima.solAno > 285 && st.clima.solAno < 302)
       t.push([e ? 'Gelid begins in ' + (302 - st.clima.solAno) + ' sols.'
                 : 'O Gélido começa em ' + (302 - st.clima.solAno) + ' sols.', 'warn']);

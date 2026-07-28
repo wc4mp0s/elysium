@@ -73,6 +73,8 @@ button.linkzin:hover{color:var(--dim)}
 .tb-right{display:flex;gap:6px}
 button.mini{padding:4px 10px;border:1px solid var(--line2);color:var(--dim);font-size:11px}
 button.mini:hover{color:var(--txt);border-color:var(--txt)}
+button.mini.off{opacity:.45}
+#btnSom{min-width:30px}
 
 .alertbar{display:flex;gap:8px;padding:0 14px;overflow-x:auto;background:#10161e;
   border-bottom:1px solid var(--line);flex:0 0 auto;min-height:0}
@@ -579,3 +581,11 @@ h4.fim-h{font-size:10px;letter-spacing:3px;color:var(--dim2);margin:18px 0 8px;f
 
 .tr-abrir{margin:12px 0 4px}
 .tr-abrir select{width:100%;max-width:340px;padding:8px}
+
+/* conselhos de meio de jogo: mesmo lugar da orientação, cor própria para não
+   serem confundidos com o tutorial de abertura */
+.tut.conselho{border-left-color:var(--acc2,#7aa2c4)}
+.tut.conselho .tut-n{color:var(--acc2,#7aa2c4)}
+.tut-nunca{display:block;margin-top:10px;background:none;border:0;padding:0;
+  color:var(--dim);font-size:10px;letter-spacing:.06em;text-decoration:underline;cursor:pointer}
+.tut-nunca:hover{color:var(--txt)}

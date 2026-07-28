@@ -369,6 +369,20 @@ EL.SWAP_EN = [
  'You can continue without it, but a first colony usually dies around sol 40.'],
 ['Manter','Keep'],
 ['Dispensar','Dismiss'],
+/* ---- rótulos do topo que ficaram em português ---- */
+['SAÚDE','HEALTH'],
+['FADIGA','FATIGUE'],
+/* ---- conselhos de meio de jogo ---- */
+['CONSELHO','ADVICE'],
+['entendi ✕','got it ✕'],
+['não mostrar conselhos','do not show advice'],
+['DESLIGAR CONSELHOS','TURN OFF ADVICE'],
+['Os conselhos aparecem uma única vez cada, quando a situação acontece — ração cortada, prédio desabando, solo esgotado, Gélido chegando.',
+ 'Advice appears once each, when the situation happens — cut rations, a collapsing building, exhausted soil, the Gelid arriving.'],
+['Dá para voltar a ligá-los apenas começando outra colônia.','You can only turn them back on by starting another colony.'],
+['Desligar','Turn off'],
+['Som ligado','Sound on'],
+['Som desligado','Sound off'],
 /* ---- tela de fim ---- */
 ['A COLÔNIA ACABOU','THE COLONY IS GONE'],
 ['ELYSIUM É UMA CIVILIZAÇÃO','ELYSIUM IS A CIVILISATION'],

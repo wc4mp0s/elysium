@@ -5,6 +5,7 @@ window.EL = EL;
 
 EL.RNG = (function () {
   function hashSeed(str) {
+    str = String(str == null ? '' : str);   // uma semente numérica caía no length undefined e colapsava tudo no mesmo hash
     var h = 1779033703 ^ str.length;
     for (var i = 0; i < str.length; i++) {
       h = Math.imul(h ^ str.charCodeAt(i), 3432918353);

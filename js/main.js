@@ -134,7 +134,7 @@
     if (!s) { b.classList.add('hidden'); return; }
     b.classList.remove('hidden');
     document.getElementById('contInfo').textContent =
-      '· sol ' + s.sol + ' · ' + EL.Sim.vivos(s).length + ' vivos';
+      '· sol ' + s.sol + ' · ' + EL.Sim.vivos(s).length + (EL.LANG === 'en' ? ' alive' : ' vivos');
   }
 
   /* ---------- modos secundários: diário, cenários, arquivo ---------- */
@@ -212,21 +212,69 @@
     document.getElementById('tabbody').scrollTop = 0;
   }
 
+  /* Depois de um sol, toca o acontecimento mais importante — não todos.
+     Um som por linha de registro viraria ruído; o jogador precisa ouvir o que muda o rumo. */
+  function somDoSol(antes) {
+    if (!EL.Som) return;
+    var PESO = { evt: 5, bad: 4, good: 3, warn: 2, info: 1 };
+    var novas = st.log.filter(function (l) { return l.sol >= antes; });
+    var melhor = null, pMax = -1;
+    for (var i = 0; i < novas.length; i++) {
+      var p = PESO[novas[i].tipo] || 0;
+      if (novas[i].txt && '⚛☠★✖'.indexOf(novas[i].txt.charAt(0)) >= 0) p += 3;
+      if (p > pMax) { pMax = p; melhor = novas[i]; }
+    }
+    if (st.fimDeJogo) return EL.Som.tocar(st.fimDeJogo.tipo === 'vitoria' ? 'vitoria' : 'derrota');
+    if (melhor && pMax >= 3) EL.Som.tocarLog(melhor.tipo, melhor.txt);
+    else EL.Som.tocar('sol');
+  }
+
   document.getElementById('btnAdvance').addEventListener('click', function () {
+    var solAntes = st.sol;
     var err = EL.Sim.avancar(st);
     if (err) { EL.UI.toast(err); return; }
+    somDoSol(solAntes);
     EL.UI.render(); EL.salvar(st);
     irParaVisao();
   });
 
   document.getElementById('btnAdvance5').addEventListener('click', function () {
+    var solAntes5 = st.sol;
     for (var i = 0; i < 5; i++) {
       if (st.pendente || st.fimDeJogo) break;
       EL.Sim.avancar(st);
     }
+    somDoSol(solAntes5);
     EL.UI.render(); EL.salvar(st);
     irParaVisao();
   });
+
+  /* ---- som ---- */
+  var btnSom = document.getElementById('btnSom');
+  function pintaSom() {
+    if (!btnSom || !EL.Som) return;
+    var on = EL.Som.ligado();
+    btnSom.textContent = on ? '♪' : '♪̸';
+    btnSom.classList.toggle('off', !on);
+    btnSom.title = on ? (EL.LANG === 'en' ? 'Sound on' : 'Som ligado')
+                      : (EL.LANG === 'en' ? 'Sound off' : 'Som desligado');
+  }
+  if (btnSom) btnSom.addEventListener('click', function () { EL.Som.alternar(); pintaSom(); });
+  pintaSom();
+
+  /* o navegador só deixa tocar áudio depois de um gesto: este é o gesto */
+  document.addEventListener('pointerdown', function ini() {
+    if (EL.Som) EL.Som.iniciar();
+    document.removeEventListener('pointerdown', ini);
+  }, { once: true });
+
+  /* cliques de interface: discretos, e nunca em cima do som do sol */
+  document.addEventListener('click', function (ev) {
+    if (!EL.Som || !EL.Som.ligado()) return;
+    var b = ev.target.closest && ev.target.closest('button');
+    if (!b || b.id === 'btnAdvance' || b.id === 'btnAdvance5') return;
+    EL.Som.tocar(b.closest('#tabs') ? 'aba' : 'clique');
+  }, true);
 
   document.getElementById('btnSave').addEventListener('click', function () {
     EL.salvar(st) ? EL.UI.toast('Colônia salva no navegador.') : EL.UI.toast('Falha ao salvar.');

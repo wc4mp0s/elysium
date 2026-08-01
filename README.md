@@ -29,14 +29,24 @@ Essa conta não fecha sozinha — e é aí que o jogo começa.
 
 | | |
 |---|---|
-| **120 setores** de 25 × 25 km, com névoa de guerra | **106 recursos** naturais catalogados |
+| **120 setores** de 25 × 25 km, com névoa de guerra | **105 recursos** naturais catalogados |
 | **74 tecnologias** em 6 tiers, do forno de barro à fusão | **59 edificações** com consumo e desgaste |
-| **73 eventos**, muitos exigindo uma decisão sua | **16 cultivares** e um modelo real de solo |
+| **89 eventos**, muitos exigindo uma decisão sua | **16 cultivares** e um modelo real de solo |
 | Clima, estações, marés de duas luas, fulgurações | Determinístico: mesma semente = mesma partida |
 
 > A NAV Perseverança caiu no planeta EL-7742, a 22,7 anos-luz da Terra. O transmissor
 > interestelar foi destruído. **Não haverá resgate. Nunca.** Você não está tentando sobreviver
 > até ser encontrado — está fundando uma civilização.
+
+### O que mais tem dentro
+
+| | |
+|---|---|
+| **Doutrinas** — 3 encruzilhadas que fecham caminhos para sempre | **Expedições** — equipes fora da base por vários sols |
+| **Demandas** — pedidos da tripulação, com prazo correndo | **Desafio diário** — mesma semente para todo mundo, todo dia |
+| **9 cenários** com condições de vitória próprias | **51 conquistas** e um **arquivo de 31 registros** |
+| **Crônica do sol** — a história emergente em primeiro plano | **Som sintetizado** por Web Audio, sem nenhum arquivo |
+| **Conselhos de meio de jogo** que aparecem quando a situação pede | **Cartão de resultado** em PNG, pronto para compartilhar |
 
 **Novo por aqui?** Comece no modo **Sobrevivente** e siga a orientação guiada. O manual
 completo está em [COMO_JOGAR.md](COMO_JOGAR.md).
@@ -57,9 +67,14 @@ fatigue, hunger and relationships; you decide what to research, what to build an
 ration. Water runs out before food. Food runs out before the first harvest. That arithmetic
 does not work on its own — which is where the game starts.
 
-120 sectors with fog of war · 106 catalogued resources · 74 technologies across 6 tiers ·
-59 structures · 73 events · 16 cultivars with a real soil model · weather, seasons, twin-moon
+120 sectors with fog of war · 105 catalogued resources · 74 technologies across 6 tiers ·
+59 structures · 89 events · 16 cultivars with a real soil model · weather, seasons, twin-moon
 tides and stellar flares · fully deterministic from a world seed.
+
+Also inside: 3 permanent doctrine crossroads, expeditions, standing crew requests with
+deadlines, a daily challenge, 9 scenarios, 51 achievements, a 31-entry archive, the sol
+chronicle that puts emergent story front and centre, synthesised audio with no asset files,
+and a shareable PNG result card.
 
 Switch language with the **EN/PT** button in the top bar. New players should start on
 **Survivor** difficulty and follow the in-game guidance.
@@ -106,20 +121,31 @@ elysium/
 │  │  ├─ i18n.js           camada de idioma + textos de interface (PT)
 │  │  ├─ i18n_en*.js       dicionário inglês (dados, eventos, interface)
 │  │  ├─ world.js          planeta, mapa 12×10, biomas, estações, motor de clima
-│  │  ├─ resources.js      ~100 materiais + 106 recursos naturais catalogados
+│  │  ├─ resources.js      ~100 materiais + 105 recursos naturais catalogados
 │  │  ├─ crew.js           os 20 sobreviventes, perícias, traços, relações
 │  │  ├─ tech.js           74 tecnologias em 6 tiers
-│  │  ├─ buildings.js      49 edificações
+│  │  ├─ buildings.js      59 edificações
 │  │  ├─ crops.js          16 cultivares + modelo de solo e pragas
 │  │  ├─ jobs.js           14 postos fixos + 50 receitas de produção
-│  │  └─ events.js         73 eventos, muitos com decisão do jogador
-│  │                      (inclui o arco da Anomalia, em 6 etapas)
+│  │  ├─ events.js         89 eventos, muitos com decisão do jogador
+│  │  │                    (inclui o arco da Anomalia, em 6 etapas)
+│  │  ├─ doutrinas.js      3 encruzilhadas × 3 opções, permanentes
+│  │  ├─ demandas.js       14 pedidos da tripulação, com prazo
+│  │  ├─ cenarios.js       9 cenários com vitória própria
+│  │  ├─ conquistas.js     51 conquistas verificadas no motor
+│  │  └─ arquivo.js        31 registros destraváveis
 │  ├─ engine/
 │  │  ├─ rng.js            aleatoriedade determinística por semente
 │  │  ├─ state.js          criação, salvamento, exportação
-│  │  └─ sim.js            resolução do turno (o coração do jogo)
+│  │  ├─ sim.js            resolução do turno (o coração do jogo)
+│  │  ├─ expedicao.js      equipes em campo, risco e espólio
+│  │  └─ diario.js         desafio diário
 │  ├─ ui/
 │  │  ├─ ui.js             renderização das 10 abas
+│  │  ├─ cronica.js        a crônica do sol — história emergente
+│  │  ├─ conselhos.js      conselhos contextuais de meio de jogo
+│  │  ├─ som.js            áudio sintetizado (Web Audio, zero arquivos)
+│  │  ├─ cartao.js         cartão de resultado em PNG
 │  │  └─ onboarding.js     tutorial guiado e tela de fim de partida
 │  └─ main.js              inicialização
 └─ COMO_JOGAR.md           manual do jogador
@@ -186,6 +212,11 @@ cima no carregamento (`js/data/i18n*.js`) — para acrescentar um terceiro idiom
 
 A primeira colônia recebe uma **orientação guiada de 8 passos** que detecta o que o jogador
 já fez e avança sozinha. Ela pode ser dispensada a qualquer momento.
+
+Depois dela entram os **conselhos de meio de jogo**: 14 avisos que não formam fila — cada um
+espera a situação acontecer, aparece uma única vez e some. São as armadilhas que matam
+colônias no sol 300, não no sol 4: a ração cortada que ninguém restaurou, o prédio apodrecendo
+sem manutenção, o laboratório caído que zera a pesquisa, o Gélido chegando.
 
 Quando a colônia acaba (ou vence), aparece uma **tela de resultado** com sols sobrevividos,
 causa do fim, gráfico de população e moral, marcos alcançados, memorial dos mortos, uma lição

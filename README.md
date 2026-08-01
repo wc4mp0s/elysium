@@ -4,7 +4,8 @@
 
 <p align="center">
   <b><a href="https://wc4mp0s.github.io/elysium/">▶ JOGAR NO NAVEGADOR</a></b><br>
-  <sub>Português · English · grátis · sem instalar nada</sub>
+  <sub>Português · English · grátis · sem instalar nada</sub><br>
+  <sub>um jogo de <a href="mailto:wemersoncampos@yahoo.com.br"><b>Wemerson Campos</b></a></sub>
 </p>
 
 <p align="center">
@@ -230,6 +231,10 @@ nada do motor.
 
 ---
 
+## Autor
+
+**Wemerson Campos** — [wemersoncampos@yahoo.com.br](mailto:wemersoncampos@yahoo.com.br)
+
 ## Licença
 
-Livre para jogar, modificar e distribuir.
+MIT. Livre para jogar, modificar e distribuir.

@@ -21,8 +21,9 @@
         ' <button id="btnLang" class="linkzin">' + (en ? 'PT' : 'EN') + '</button>';
       ligarRodape();
     }
+    // o crédito é o mesmo nos dois idiomas: só o nome, ligado ao e-mail do autor
     var aut = document.getElementById('bootAutor');
-    if (aut) aut.innerHTML = (en ? 'a game by ' : 'um jogo de ') + '<b>Wemerson Campos</b>';
+    if (aut) aut.innerHTML = '<a href="mailto:wemersoncampos@yahoo.com.br">Wemerson Campos</a>';
 
     var bl = document.getElementById('btnLangJogo'); if (bl) bl.textContent = en ? 'PT' : 'EN';
 

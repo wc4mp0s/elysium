@@ -591,6 +591,13 @@ h4.fim-h{font-size:10px;letter-spacing:3px;color:var(--dim2);margin:18px 0 8px;f
 .tut-nunca:hover{color:var(--txt)}
 
 /* crédito do autor na tela de entrada — discreto, sem competir com o botão JOGAR */
-.boot-autor{margin-top:18px;text-align:center;font-size:11px;letter-spacing:.08em;
-  color:var(--dim);opacity:.75}
-.boot-autor b{font-weight:500;color:var(--txt);opacity:.9}
+.boot-autor{margin-top:34px;text-align:center;font-size:11px;letter-spacing:.1em}
+.boot-autor a{color:var(--dim);opacity:.8;text-decoration:none;
+  border-bottom:1px solid transparent;padding-bottom:2px;transition:color .15s,opacity .15s,border-color .15s}
+.boot-autor a:hover{color:var(--txt);opacity:1;border-bottom-color:var(--line2)}
+
+/* crédito na tela de fim de partida, no mesmo tom do da tela de entrada */
+.fim-autor{margin-top:30px;text-align:center;font-size:11px;letter-spacing:.1em}
+.fim-autor a{color:var(--dim);opacity:.8;text-decoration:none;
+  border-bottom:1px solid transparent;padding-bottom:2px;transition:color .15s,opacity .15s,border-color .15s}
+.fim-autor a:hover{color:var(--txt);opacity:1;border-bottom-color:var(--line2)}

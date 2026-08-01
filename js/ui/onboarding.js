@@ -237,6 +237,7 @@ EL.Fim = (function () {
       '<button class="act" data-fim="rever">Rever</button> ' +
       '<button class="act" data-fim="nova">NOVA COLÔNIA</button></div>';
     h += '<p class="fim-dica">' + esc(dica(st)) + '</p>';
+    h += '<p class="fim-autor"><a href="mailto:wemersoncampos@yahoo.com.br">Wemerson Campos</a></p>';
     h += '</div>';
     return h;
   }

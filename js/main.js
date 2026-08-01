@@ -21,6 +21,9 @@
         ' <button id="btnLang" class="linkzin">' + (en ? 'PT' : 'EN') + '</button>';
       ligarRodape();
     }
+    var aut = document.getElementById('bootAutor');
+    if (aut) aut.innerHTML = (en ? 'a game by ' : 'um jogo de ') + '<b>Wemerson Campos</b>';
+
     var bl = document.getElementById('btnLangJogo'); if (bl) bl.textContent = en ? 'PT' : 'EN';
 
     var abas = T('abas');

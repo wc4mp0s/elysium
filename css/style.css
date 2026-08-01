@@ -589,3 +589,8 @@ h4.fim-h{font-size:10px;letter-spacing:3px;color:var(--dim2);margin:18px 0 8px;f
 .tut-nunca{display:block;margin-top:10px;background:none;border:0;padding:0;
   color:var(--dim);font-size:10px;letter-spacing:.06em;text-decoration:underline;cursor:pointer}
 .tut-nunca:hover{color:var(--txt)}
+
+/* crédito do autor na tela de entrada — discreto, sem competir com o botão JOGAR */
+.boot-autor{margin-top:18px;text-align:center;font-size:11px;letter-spacing:.08em;
+  color:var(--dim);opacity:.75}
+.boot-autor b{font-weight:500;color:var(--txt);opacity:.9}

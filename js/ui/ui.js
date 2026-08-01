@@ -891,6 +891,7 @@ EL.UI = (function () {
     } catch (e) {}
     w.className = 'fimwrap' + (st.fimDeJogo.tipo === 'vitoria' ? ' vitoria' : '');
     w.innerHTML = EL.tHTML(EL.Fim.html(st));
+    EL.ligarCredito(document.getElementById('fimAutor'));
     w.scrollTop = 0;
   }
 

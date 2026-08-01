@@ -143,6 +143,28 @@ EL.nomeCurto = function (c) {
   return p[p.length - 1];
 };
 
+/* Contato do autor.
+   Um mailto: escrito por extenso no HTML é colhido por robôs que varrem a web
+   atrás de endereços para spam. Aqui o endereço nunca existe inteiro no
+   código-fonte: é remontado em memória só quando alguém realmente vai usá-lo.
+   O nome continua visível como texto puro, então o crédito aparece mesmo que
+   o JavaScript falhe — o que se perde nesse caso é apenas o link. */
+EL.contatoAutor = function () {
+  var p = ['wemersoncampos', 'yahoo', 'com', 'br'];
+  return p[0] + String.fromCharCode(64) + p[1] + '.' + p[2] + '.' + p[3];
+};
+
+EL.ligarCredito = function (el) {
+  if (!el || el.querySelector('a')) return;
+  var nome = (el.textContent || '').trim() || 'Wemerson Campos';
+  var a = document.createElement('a');
+  a.textContent = nome;
+  a.href = 'mail' + 'to:' + EL.contatoAutor();
+  a.rel = 'author';
+  el.textContent = '';
+  el.appendChild(a);
+};
+
 EL.logar = function (st, txt, tipo) {
   st.log.push({ sol: st.sol, txt: EL.traduzLog(txt), tipo: tipo || '' });
   if (st.log.length > 600) st.log.splice(0, st.log.length - 600);
